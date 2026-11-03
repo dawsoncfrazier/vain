@@ -1,9 +1,1 @@
-export async function onRequestGet({ env }) {
-  return Response.json({
-    ok: Boolean(env.AI),
-    service: "vAIn Ϙ",
-    model: "@cf/meta/llama-3.2-1b-instruct",
-    ai_binding: Boolean(env.AI),
-    note: "Cloud-hosted inference through Cloudflare Workers AI"
-  }, { headers: { "cache-control": "no-store" } });
-}
+export async function onRequestGet({env}){const ai=Boolean(env.AI),db=Boolean(env.DB);return Response.json({ok:ai&&db,service:"vAIn Ϙ",model:"@cf/meta/llama-3.2-1b-instruct",ai_binding:ai,d1_binding:db,persistence:db?"enabled":"not configured"},{headers:{"cache-control":"no-store"}})}
