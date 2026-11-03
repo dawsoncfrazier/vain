@@ -41,11 +41,15 @@ export async function onRequestPost({request,env}){
   const explicitRemember=message.match(/^(?:remember(?:\s+that)?|keep\s+in\s+mind(?:\s+that)?)\s+(.{5,3000})$/i);
   const preference=message.match(/^(?:I\s+(?:prefer|like|love|want|use|am\s+building|am\s+working\s+on)|my\s+(?:project|workflow|setup)\s+(?:is|uses|needs))\b/i);
   const joking=/\b(just kidding|jk|i am joking|i'm joking|im joking|that was a joke)\b/i.test(message);
+  const autobiographical = /^(?:I(?:\\s|')|my\\s|we\\s|our\\s)/i.test(message) && !/\\?\\s*$/.test(message);
+  const shouldRemember = Boolean(explicitRemember || autobiographical);
+
   const sensitive=/\b(password|passcode|social security|ssn|credit card|bank account|home address|phone number|medical|diagnosis|medication|sexuality|sex life|religion|political affiliation)\b/i.test(message);
-  if(!joking&&!sensitive&&(explicitRemember||preference)){
+  if(!joking&&!sensitive&&shouldRemember){
    const savedText=explicitRemember?explicitRemember[1].trim():message;
-   const category=explicitRemember?"personal_fact":/\b(prefer|like|love|want|use)\b/i.test(message)?"preference":"project_fact";
+   const category=/\b(prefer|like|love|want|use)\b/i.test(message)?"preference":/\b(project|vAIn|vain|build|develop|code|website|app|system|workflow|setup)\b/i.test(message)?"project_fact":"personal_fact";
    await env.DB.prepare("INSERT INTO memory_entries(text,category,created_at) VALUES(?,?,?)").bind(savedText,category,stamp).run();
+   await env.DB.prepare("DELETE FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') AND id NOT IN (SELECT id FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') ORDER BY id DESC LIMIT 200)").run();
   }
   const prior=await env.DB.prepare("SELECT role,content FROM messages WHERE session_id=? ORDER BY id DESC LIMIT 16").bind(session).all();
   const history=(prior.results||[]).reverse().map(x=>({role:x.role,content:x.content}));
