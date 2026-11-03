@@ -11,9 +11,9 @@ async function ensureSchema(db){
 }
 async function getMemory(db){await ensureSchema(db);const r=await db.prepare("SELECT text,category,source,created_at FROM memory_entries ORDER BY id DESC LIMIT 100").all();return r.results||[]}
 function directRecall(q,mem){
- const patterns=[[/\\bwhen did i graduate\\b|\\bwhat year did i graduate\\b|\\bgraduation date\\b/i,/graduate|graduat/i],
- [/\\bwhat is my name\\b|\\bwhat's my name\\b/i,/my name is|name:/i],
- [/\\bwhat is my project\\b|\\bwhat project am i building\\b/i,/project|building|developing/i]];
+ const patterns=[[/\bwhen did i graduate\b|\bwhat year did i graduate\b|\bgraduation date\b/i,/graduate|graduat/i],
+ [/\bwhat is my name\b|\bwhat's my name\b/i,/my name is|name:/i],
+ [/\bwhat is my project\b|\bwhat project am i building\b/i,/project|building|developing/i]];
  for(const [question,match] of patterns){if(question.test(q)){const found=mem.filter(x=>match.test(x.text||"")&&["personal_fact","project_fact","preference","instruction"].includes(x.category));if(!found.length)return "I don't have a saved record of that. I won't guess or claim you told me something that isn't in memory.";return "What I have saved:\n"+found.slice(0,8).map(x=>"- ["+x.category+"] "+x.text+" (source: "+(x.source||"not recorded")+")").join("\n")}}
  return null;
 }
@@ -45,7 +45,7 @@ export async function onRequestPost({request,env}){
   if(!joking&&!sensitive&&shouldRemember){
    const savedText=explicitRemember?explicitRemember[1].trim():message;
    const category=/\b(prefer|like|love|want|use)\b/i.test(message)?"preference":/\b(project|vAIn|vain|build|develop|code|website|app|system|workflow|setup)\b/i.test(message)?"project_fact":"personal_fact";
-   await env.DB.prepare("INSERT INTO memory_entries(text,category,created_at) VALUES(?,?,?)").bind(savedText,category,"user_statement",stamp).run();
+   await env.DB.prepare("INSERT INTO memory_entries(text,category,source,created_at) VALUES(?,?,?,?)").bind(savedText,category,"user_statement",stamp).run();
    await env.DB.prepare("DELETE FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') AND id NOT IN (SELECT id FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') ORDER BY id DESC LIMIT 200)").run();
   }
   const prior=await env.DB.prepare("SELECT role,content FROM messages WHERE session_id=? ORDER BY id DESC LIMIT 16").bind(session).all();
