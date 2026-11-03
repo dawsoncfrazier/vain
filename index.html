@@ -68,6 +68,6 @@ $("#controlPlan").onclick=async()=>{try{const d=await api("/api/vain/control/pla
 async function loadSite(){try{const d=await api("/api/site-settings");if(d.accent)$("#accent").value=d.accent;if(d.site_name)$("#siteName").value=d.site_name}catch(e){}}
 $("#saveSite").onclick=async()=>{try{await api("/api/site-settings",{method:"POST",body:JSON.stringify({accent:$("#accent").value,site_name:$("#siteName").value})});document.documentElement.style.setProperty("--violet",$("#accent").value);toast("Appearance saved")}catch(e){toast(e.message)}};
 $("#saveEngine").onclick=async()=>{try{await api("/api/site-settings",{method:"POST",body:JSON.stringify({engine:$("#engine").value})});toast("Preference saved")}catch(e){toast(e.message)}};
-connect();
+connect();loadHistory();
 </script>
 </body></html>
