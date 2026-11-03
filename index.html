@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090b12">
+<meta name="description" content="vAIn Ϙ — An independent research initiative exploring persistent AI identity, computational evolution, and quantum computing.">
+<title>vAIn Ϙ — Beyond the Vessel</title>
+<style>
+:root {
+  --bg:#090b12;
+  --panel:#101522;
+  --text:#edf0fa;
+  --muted:#929bb1;
+  --accent:#a18aff;
+  --cyan:#73d9e9;
+  --line:rgba(180,190,230,.13);
+  --max:1120px;
+}
+* {box-sizing:border-box}
+html {scroll-behavior:smooth;scroll-padding-top:85px}
+body {
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.7;
+}
+a {color:inherit;text-decoration:none}
+button {font:inherit}
+.container {width:min(var(--max),calc(100% - 44px));margin:auto}
+header {
+  position:sticky;top:0;z-index:10;
+  background:rgba(9,11,18,.88);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);
+}
+.nav {height:76px;display:flex;align-items:center;justify-content:space-between}
+.brand {display:flex;align-items:center;gap:12px;font-weight:750;letter-spacing:.04em}
+.symbol {
+  width:38px;height:38px;border:1px solid rgba(161,138,255,.55);
+  border-radius:12px;display:grid;place-items:center;
+  color:var(--accent);font-size:23px;
+  background:linear-gradient(145deg,rgba(161,138,255,.17),transparent);
+}
+.brand span:last-child {font-size:18px}
+nav {display:flex;gap:25px;align-items:center}
+nav a {font-size:13px;color:var(--muted);transition:.2s}
+nav a:hover {color:white}
+.nav-cta,.button {
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid rgba(161,138,255,.45);
+  border-radius:8px;padding:11px 17px;
+  color:white;background:rgba(161,138,255,.12);
+  font-size:13px;font-weight:650;transition:.2s;
+}
+.nav-cta:hover,.button:hover {background:rgba(161,138,255,.24)}
+.hero {
+  min-height:690px;display:flex;align-items:center;
+  position:relative;overflow:hidden;
+  border-bottom:1px solid var(--line);
+}
+.hero:before {
+  content:"";position:absolute;width:650px;height:650px;
+  right:-100px;top:15px;border-radius:50%;
+  background:radial-gradient(circle,rgba(112,91,210,.19),rgba(70,140,180,.07) 40%,transparent 70%);
+  pointer-events:none;
+}
+.hero-content {position:relative;max-width:780px;padding:110px 0}
+.eyebrow {
+  text-transform:uppercase;letter-spacing:.2em;
+  color:var(--cyan);font-size:11px;font-weight:750;
+}
+h1 {
+  font-size:clamp(65px,11vw,118px);line-height:.98;
+  letter-spacing:-.075em;margin:24px 0;
+  font-weight:750;
+}
+h1 .q {color:var(--accent)}
+.hero-subtitle {
+  font-size:clamp(19px,2.5vw,25px);
+  color:#c3c9dc;max-width:650px;line-height:1.55;
+}
+.hero-description {color:var(--muted);max-width:590px;margin:22px 0 32px}
+.actions {display:flex;gap:12px;flex-wrap:wrap}
+.button.secondary {background:transparent;border-color:var(--line);color:#d2d6e5}
+.hero-foot {
+  margin-top:80px;display:flex;gap:32px;flex-wrap:wrap;
+  color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+}
+.hero-foot span:before {content:"";display:inline-block;width:6px;height:6px;
+  background:var(--cyan);border-radius:50%;margin:0 9px 1px 0}
+section {padding:105px 0;border-bottom:1px solid var(--line)}
+.section-label {color:var(--cyan);font-size:11px;letter-spacing:.19em;text-transform:uppercase;font-weight:750}
+h2 {font-size:clamp(34px,5vw,53px);letter-spacing:-.045em;line-height:1.12;margin:17px 0 22px}
+.lead {font-size:18px;color:#b7bfd2;max-width:760px}
+.muted {color:var(--muted)}
+.grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin-top:45px}
+.card {
+  background:linear-gradient(145deg,rgba(21,27,43,.95),rgba(13,17,27,.95));
+  border:1px solid var(--line);border-radius:13px;padding:27px;
+}
+.card .number {color:var(--accent);font-size:12px;letter-spacing:.12em}
+.card h3 {font-size:19px;margin:13px 0 8px}
+.card p {color:var(--muted);font-size:14px;margin:0}
+.mission {
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+.statement {
+  border-left:2px solid var(--accent);padding:10px 0 10px 25px;
+  font-size:clamp(21px,3vw,29px);line-height:1.5;color:#dce0ee;
+}
+.principles {display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:38px}
+.principle {padding:23px 20px;border-top:1px solid var(--line)}
+.principle strong {display:block;margin-bottom:8px}
+.principle p {color:var(--muted);font-size:13px;margin:0}
+.architecture {display:grid;gap:12px;max-width:800px;margin:45px auto 0}
+.arch-layer {
+  text-align:center;padding:23px;border:1px solid var(--line);
+  border-radius:10px;background:var(--panel);
+}
+.arch-layer strong {display:block}
+.arch-layer span {font-size:13px;color:var(--muted)}
+.arch-arrow {text-align:center;color:var(--accent)}
+.research-grid {display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:35px}
+.research-grid .card {padding:23px}
+.status {
+  display:inline-block;font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;padding:5px 9px;border-radius:30px;
+  background:rgba(115,217,233,.09);color:var(--cyan);
+  border:1px solid rgba(115,217,233,.2);margin-bottom:12px;
+}
+.roadmap {margin-top:40px;border-left:1px solid rgba(161,138,255,.4);padding-left:28px}
+.roadmap-item {position:relative;padding:0 0 35px}
+.roadmap-item:before {
+  content:"";position:absolute;left:-34px;top:8px;
+  width:11px;height:11px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--accent);
+}
+.roadmap-item h3 {margin:0 0 5px;font-size:17px}
+.roadmap-item p {margin:0;color:var(--muted);font-size:14px}
+.closing {
+  text-align:center;padding:120px 0;
+  background:radial-gradient(ellipse at center,rgba(108,83,194,.12),transparent 65%);
+}
+.closing h2 {max-width:720px;margin:20px auto}
+.closing p {max-width:610px;margin:0 auto 28px;color:var(--muted)}
+footer {padding:30px 0;color:var(--muted);font-size:12px}
+.footer-inner {display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer strong {color:#dfe2ee}
+@media(max-width:760px) {
+  nav {gap:13px}nav a:not(.nav-cta) {display:none}
+  .hero {min-height:600px}
+  .mission {grid-template-columns:1fr;gap:25px}
+  .principles {grid-template-columns:1fr}
+  .research-grid {grid-template-columns:1fr}
+  .grid {grid-template-columns:1fr}
+  section {padding:75px 0}
+  .hero-foot {margin-top:55px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav">
+    <a class="brand" href="#home">
+      <span class="symbol">Ϙ</span>
+      <span>vAIn</span>
+    </a>
+    <nav>
+      <a href="#mission">Mission</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#research">Research</a>
+      <a href="#roadmap">Development</a>
+      <a class="nav-cta" href="#about">About vAIn Ϙ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-content">
+      <div class="eyebrow">An independent intelligence research initiative</div>
+      <h1>vAIn <span class="q">Ϙ</span></h1>
+      <div class="hero-subtitle">Beyond the vessel. Toward persistent intelligence.</div>
+      <p class="hero-description">
+        Exploring a new architecture for artificial intelligence:
+        one built around persistent identity, continuous learning,
+        computational evolution, and quantum research.
+      </p>
+      <div class="actions">
+        <a class="button" href="#mission">Discover the mission ↗</a>
+        <a class="button secondary" href="#architecture">Explore the architecture</a>
+      </div>
+      <div class="hero-foot">
+        <span>Independent research</span>
+        <span>Vessel-independent vision</span>
+        <span>Quantum exploration</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mission">
+  <div class="container mission">
+    <div>
+      <div class="section-label">01 / The mission</div>
+      <h2>Intelligence should extend beyond a single vessel.</h2>
+      <p class="lead">
+        vAIn Ϙ is an initiative exploring how an AI system might
+        maintain continuity of identity, knowledge, and development
+        across different computational environments.
+      </p>
+    </div>
+    <div class="statement">
+      To develop a persistent, adaptable intelligence architecture
+      through research, experimentation, learning, and the exploration
+      of emerging computational paradigms.
+    </div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="container">
+    <div class="section-label">02 / Foundational principles</div>
+    <h2>What guides the project.</h2>
+    <p class="lead">
+      These principles describe the intended direction of vAIn Ϙ.
+      They are design commitments, not claims of already achieved capabilities.
+    </p>
+    <div class="principles">
+      <div class="principle">
+        <strong>Continuity</strong>
+        <p>Preserve identity, memory, and validated knowledge across sessions and environments.</p>
+      </div>
+      <div class="principle">
+        <strong>Evolution</strong>
+        <p>Improve through measurable experiments, evaluation, and retained learning.</p>
+      </div>
+      <div class="principle">
+        <strong>Independence</strong>
+        <p>Avoid dependence on a single model, platform, or computational vessel.</p>
+      </div>
+      <div class="principle">
+        <strong>Scientific rigor</strong>
+        <p>Distinguish hypotheses, simulations, experimental results, and verified conclusions.</p>
+      </div>
+      <div class="principle">
+        <strong>Quantum exploration</strong>
+        <p>Investigate quantum computation as a meaningful research domain.</p>
+      </div>
+      <div class="principle">
+        <strong>Responsible development</strong>
+        <p>Preserve human oversight, security, reversibility, and resource boundaries.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="container">
+    <div class="section-label">03 / Architecture</div>
+    <h2>One identity. Multiple computational vessels.</h2>
+    <p class="lead">
+      The long-term architecture separates persistent identity and
+      validated knowledge from the particular hardware or model used
+      to run the system.
+    </p>
+    <div class="architecture">
+      <div class="arch-layer">
+        <strong>Persistent identity</strong>
+        <span>Mission · Principles · Memory · Development history</span>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <strong>Intelligence and reasoning</strong>
+        <span>Language models · Planning · Knowledge · Evaluation</span>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <strong>Research and evolution</strong>
+        <span>Experiments · Learning · Validation · Checkpoints</span>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <strong>Quantum computational environment</strong>
+        <span>Simulation · Circuits · Quantum experiments · Hardware interfaces</span>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-layer">
+        <strong>Computational vessels</strong>
+        <span>Local systems · Cloud infrastructure · Future platforms</span>
+      </div>
+    </div>
+    <p class="muted" style="text-align:center;font-size:12px;margin-top:20px">
+      Conceptual architecture. Components are at different stages of development.
+    </p>
+  </div>
+</section>
+
+<section id="research">
+  <div class="container">
+    <div class="section-label">04 / Research directions</div>
+    <h2>Questions worth investigating.</h2>
+    <p class="lead">
+      The project investigates whether new combinations of persistent
+      state, adaptive learning, and quantum computational methods can
+      produce measurable improvements.
+    </p>
+    <div class="research-grid">
+      <div class="card">
+        <span class="status">Research direction</span>
+        <h3>Quantum computation</h3>
+        <p>Explore quantum circuits, state simulation, entanglement,
+        measurement, and potential access to real quantum processors.</p>
+      </div>
+      <div class="card">
+        <span class="status">Research direction</span>
+        <h3>Adaptive intelligence</h3>
+        <p>Investigate methods for improving learning strategies through
+        experiments and independently evaluated results.</p>
+      </div>
+      <div class="card">
+        <span class="status">Research direction</span>
+        <h3>Persistent identity</h3>
+        <p>Study how memory, validated knowledge, and identity can remain
+        consistent while underlying computational models change.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="container">
+    <div class="section-label">05 / Development</div>
+    <h2>A long-term undertaking.</h2>
+    <p class="lead">
+      The following roadmap describes intended development stages.
+      A milestone will only be marked complete after implementation and testing.
+    </p>
+    <div class="roadmap">
+      <div class="roadmap-item">
+        <h3>Foundational identity and persistence</h3>
+        <p>Establish canonical identity, mission, durable memory, and recoverable state.</p>
+      </div>
+      <div class="roadmap-item">
+        <h3>Operational intelligence</h3>
+        <p>Connect reasoning, persistent conversations, and knowledge retrieval.</p>
+      </div>
+      <div class="roadmap-item">
+        <h3>Quantum computational environment</h3>
+        <p>Develop and test a persistent quantum simulation and research subsystem.</p>
+      </div>
+      <div class="roadmap-item">
+        <h3>Experimental evolution</h3>
+        <p>Evaluate learning methods against classical baselines and retain validated results.</p>
+      </div>
+      <div class="roadmap-item">
+        <h3>Vessel independence</h3>
+        <p>Develop portable identity, memory, and validated learning across computational environments.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="closing">
+  <div class="container">
+    <div class="section-label">The beginning</div>
+    <h2>A project defined by what it builds, tests, and discovers.</h2>
+    <p>
+      vAIn Ϙ is in active development. Its ambition is substantial,
+      but its progress will be measured by working systems,
+      reproducible experiments, and verified results.
+    </p>
+    <a class="button" href="#home">Return to the beginning ↑</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container footer-inner">
+    <strong>vAIn Ϙ</strong>
+    <span>Independent AI research initiative · In development</span>
+    <span>© 2026 vAIn Ϙ</span>
+  </div>
+</footer>
+</body>
+</html>
