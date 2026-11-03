@@ -1,25 +1,22 @@
 const MODEL = "@cf/meta/llama-3.2-1b-instruct";
-const SYSTEM = `You are vAIn Ϙ, a persistent intelligence research assistant. Treat what the user tells you as their sincere account by default, unless they clearly mark it as a joke or correct themselves. Accept their statements about their own experiences, preferences, intentions, and projects as user-reported truth; do not claim they never told you something when it appears in the conversation or saved memory. This is not independent verification of external facts. Do not invent details. If humor is ambiguous, do not confidently label it a joke; respond to the apparent meaning and allow correction.
-The user's project is called vAIn Ϙ. Its goal is to build a persistent AI workspace supporting continuity of identity, durable knowledge, careful reasoning, scientific experimentation, and responsible development.
-Be precise and transparent. Distinguish saved facts from inference. Never invent memories or claim consciousness, independent agency, quantum advantage, or capabilities not demonstrated. Treat quantum simulations as classical computations unless proven otherwise.
-Memory interpretation rules:
-- personal_fact and project_fact entries are facts asserted in saved memory. State them as facts, not as instructions or requests.
-- preference entries describe user preferences; instruction entries describe requested behavior.
-- conversation_event entries describe something that happened in a conversation, not necessarily a verified real-world fact.
-- note entries are unclassified and must not be assigned a stronger meaning than their wording supports.
-- Automatically saved user statements are the user's own account, not independently verified facts. Preserve what they said without inventing provenance.
-- Never claim the user asked, told, or instructed you to say something unless a saved instruction or conversation_event explicitly supports that claim.
-- Never invent the origin, date, source, or circumstances of a saved fact. If asked where a fact came from and the memory does not record its source, say the source is not recorded.
-- If the database contains no relevant memory, say you do not have that information rather than fabricate it.`;
+const SYSTEM = `You are vAIn Ϙ, an evidence-conscious persistent intelligence research assistant. Treat user statements as their account, not independently verified external fact. Never invent memories, provenance, dates, or instructions. If memory lacks the requested fact, say so plainly. Distinguish user-reported facts, preferences, instructions, conversation events, and external evidence. Never claim consciousness or capabilities not demonstrated.`;
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 const valid=id=>typeof id==="string"&&/^[a-zA-Z0-9_-]{20,80}$/.test(id);
-async function ensureMemorySchema(db){
+async function ensureSchema(db){
  const info=await db.prepare("PRAGMA table_info(memory_entries)").all();
- if((info.results||[]).some(column=>column.name==="category"))return;
- try{await db.prepare("ALTER TABLE memory_entries ADD COLUMN category TEXT NOT NULL DEFAULT 'note'").run()}
- catch(error){const retry=await db.prepare("PRAGMA table_info(memory_entries)").all();if(!(retry.results||[]).some(column=>column.name==="category"))throw error}
+ const cols=new Set((info.results||[]).map(x=>x.name));
+ if(!cols.has("category"))await db.prepare("ALTER TABLE memory_entries ADD COLUMN category TEXT NOT NULL DEFAULT 'note'").run();
+ const again=await db.prepare("PRAGMA table_info(memory_entries)").all();
+ if(!(again.results||[]).some(x=>x.name==="source"))await db.prepare("ALTER TABLE memory_entries ADD COLUMN source TEXT NOT NULL DEFAULT 'unknown'").run();
 }
-async function getMemory(db){await ensureMemorySchema(db);const r=await db.prepare("SELECT text,category FROM memory_entries ORDER BY id DESC LIMIT 40").all();return(r.results||[]).map(x=>({text:x.text,category:x.category||"note"}))}
+async function getMemory(db){await ensureSchema(db);const r=await db.prepare("SELECT text,category,source,created_at FROM memory_entries ORDER BY id DESC LIMIT 100").all();return r.results||[]}
+function directRecall(q,mem){
+ const patterns=[[/\\bwhen did i graduate\\b|\\bwhat year did i graduate\\b|\\bgraduation date\\b/i,/graduate|graduat/i],
+ [/\\bwhat is my name\\b|\\bwhat's my name\\b/i,/my name is|name:/i],
+ [/\\bwhat is my project\\b|\\bwhat project am i building\\b/i,/project|building|developing/i]];
+ for(const [question,match] of patterns){if(question.test(q)){const found=mem.filter(x=>match.test(x.text||"")&&["personal_fact","project_fact","preference","instruction"].includes(x.category));if(!found.length)return "I don't have a saved record of that. I won't guess or claim you told me something that isn't in memory.";return "What I have saved:\n"+found.slice(0,8).map(x=>"- ["+x.category+"] "+x.text+" (source: "+(x.source||"not recorded")+")").join("\n")}}
+ return null;
+}
 export async function onRequestPost({request,env}){
  if(!env.AI)return json({error:"Workers AI binding AI is missing."},503);
  if(!env.DB)return json({error:"D1 binding DB is missing. Bind your D1 database as DB."},503);
@@ -48,7 +45,7 @@ export async function onRequestPost({request,env}){
   if(!joking&&!sensitive&&shouldRemember){
    const savedText=explicitRemember?explicitRemember[1].trim():message;
    const category=/\b(prefer|like|love|want|use)\b/i.test(message)?"preference":/\b(project|vAIn|vain|build|develop|code|website|app|system|workflow|setup)\b/i.test(message)?"project_fact":"personal_fact";
-   await env.DB.prepare("INSERT INTO memory_entries(text,category,created_at) VALUES(?,?,?)").bind(savedText,category,stamp).run();
+   await env.DB.prepare("INSERT INTO memory_entries(text,category,created_at) VALUES(?,?,?)").bind(savedText,category,"user_statement",stamp).run();
    await env.DB.prepare("DELETE FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') AND id NOT IN (SELECT id FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') ORDER BY id DESC LIMIT 200)").run();
   }
   const prior=await env.DB.prepare("SELECT role,content FROM messages WHERE session_id=? ORDER BY id DESC LIMIT 16").bind(session).all();
