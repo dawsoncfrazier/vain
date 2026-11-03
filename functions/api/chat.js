@@ -41,7 +41,7 @@ export async function onRequestPost({request,env}){
   const explicitRemember=message.match(/^(?:remember(?:\s+that)?|keep\s+in\s+mind(?:\s+that)?)\s+(.{5,3000})$/i);
   const preference=message.match(/^(?:I\s+(?:prefer|like|love|want|use|am\s+building|am\s+working\s+on)|my\s+(?:project|workflow|setup)\s+(?:is|uses|needs))\b/i);
   const joking=/\b(just kidding|jk|i am joking|i'm joking|im joking|that was a joke)\b/i.test(message);
-  const autobiographical = /^(?:I(?:\\s|')|my\\s|we\\s|our\\s)/i.test(message) && !/\\?\\s*$/.test(message);
+  const autobiographical = /^(?:I(?:\s|')|my\s|we\s|our\s)/i.test(message) && !/\?\s*$/.test(message);
   const shouldRemember = Boolean(explicitRemember || autobiographical);
 
   const sensitive=/\b(password|passcode|social security|ssn|credit card|bank account|home address|phone number|medical|diagnosis|medication|sexuality|sex life|religion|political affiliation)\b/i.test(message);
