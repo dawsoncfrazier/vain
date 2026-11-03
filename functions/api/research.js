@@ -3,7 +3,7 @@ async function schema(db){await db.batch([
  db.prepare("CREATE TABLE IF NOT EXISTS research_items(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,url TEXT NOT NULL UNIQUE,source TEXT NOT NULL,summary TEXT,published_at TEXT,created_at TEXT NOT NULL)"),
  db.prepare("CREATE TABLE IF NOT EXISTS research_briefings(id INTEGER PRIMARY KEY AUTOINCREMENT,summary TEXT NOT NULL,question TEXT NOT NULL,created_at TEXT NOT NULL)")
 ])}
-function tag(s,n){const m=s.match(new RegExp("<"+n+"[^>]*>([\s\S]*?)</"+n+">","i"));return m?m[1].replace(/<!\[CDATA\[|\]\]>/g,"").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim():""}
+function tag(s,n){const m=s.match(new RegExp("<"+n+"[^>]*>([\\s\\S]*?)</"+n+">","i"));return m?m[1].replace(/<!\[CDATA\[|\]\]>/g,"").replace(/<[^>]+>/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim():""}
 async function getFeed(url,source){try{const r=await fetch(url,{headers:{"user-agent":"vAIn-research/1.0 contact: research@vain-byr.pages.dev"},signal:AbortSignal.timeout(9000)});if(!r.ok)return[];const xml=await r.text();return [...xml.matchAll(/<(?:entry|item)\b[\s\S]*?<\/(?:entry|item)>/gi)].slice(0,6).map(m=>{const x=m[0],link=tag(x,"link")||((x.match(/<link[^>]+href=["']([^"']+)/i)||[])[1]||"");return{title:tag(x,"title"),url:link,summary:tag(x,"summary")||tag(x,"description"),published:tag(x,"published")||tag(x,"pubDate"),source}}).filter(x=>x.title&&x.url&&/^https:\/\//.test(x.url))}catch{return[]}}
 async function refresh(env){
  const feeds=await Promise.all([
