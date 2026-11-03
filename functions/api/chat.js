@@ -12,7 +12,13 @@ Memory interpretation rules:
 - If the database contains no relevant memory, say you do not have that information rather than fabricate it.`;
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 const valid=id=>typeof id==="string"&&/^[a-zA-Z0-9_-]{20,80}$/.test(id);
-async function getMemory(db){const r=await db.prepare("SELECT text,category FROM memory_entries ORDER BY created_at DESC LIMIT 30").all();return(r.results||[]).map(x=>({text:x.text,category:x.category||"note"}))}
+async function ensureMemorySchema(db){
+ const info=await db.prepare("PRAGMA table_info(memory_entries)").all();
+ if((info.results||[]).some(column=>column.name==="category"))return;
+ try{await db.prepare("ALTER TABLE memory_entries ADD COLUMN category TEXT NOT NULL DEFAULT 'note'").run()}
+ catch(error){const retry=await db.prepare("PRAGMA table_info(memory_entries)").all();if(!(retry.results||[]).some(column=>column.name==="category"))throw error}
+}
+async function getMemory(db){await ensureMemorySchema(db);const r=await db.prepare("SELECT text,category FROM memory_entries ORDER BY created_at DESC LIMIT 30").all();return(r.results||[]).map(x=>({text:x.text,category:x.category||"note"}))}
 export async function onRequestPost({request,env}){
  if(!env.AI)return json({error:"Workers AI binding AI is missing."},503);
  if(!env.DB)return json({error:"D1 binding DB is missing. Bind your D1 database as DB."},503);
