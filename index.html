@@ -45,7 +45,8 @@
 </main></div><div class="toast" id="toast"></div>
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-let apiOnline=false,historyLoaded=false;\nconst SESSION_ID=(()=>{let id=localStorage.getItem("vain_session_id");if(!id){id=crypto.randomUUID().replace(/-/g,"");localStorage.setItem("vain_session_id",id)}return id})();
+let apiOnline=false,historyLoaded=false;
+const SESSION_ID=(()=>{let id=localStorage.getItem("vain_session_id");if(!id){id=crypto.randomUUID().replace(/-/g,"");localStorage.setItem("vain_session_id",id)}return id})();
 function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2800)}
 async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});const data=await r.json().catch(()=>({detail:r.statusText}));if(!r.ok)throw new Error(data.detail||data.message||"Request failed ("+r.status+")");return data}
 function setConnection(ok,msg){apiOnline=ok;$("#connection").textContent=msg;$("#sideStatus").textContent=ok?"Core connected":"Core offline";$("#sideDot").classList.toggle("on",ok);$("#connectionDetails").textContent=msg}
