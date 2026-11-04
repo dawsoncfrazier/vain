@@ -1,0 +1,2 @@
+const json=x=>new Response(JSON.stringify(x),{headers:{"content-type":"application/json","cache-control":"no-store"}});
+export async function onRequestGet({env}){if(!env.DB)return json({ok:false,error:"D1 unavailable"});const tables=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all();return json({ok:true,approval_required:true,automatic_execution:false,available_tables:(tables.results||[]).map(x=>x.name),note:"Plans and proposals are stored for review; this service does not execute code or deploy changes."})}

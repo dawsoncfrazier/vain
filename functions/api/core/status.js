@@ -1,0 +1,2 @@
+const json=x=>new Response(JSON.stringify(x),{headers:{"content-type":"application/json","cache-control":"no-store"}});
+export async function onRequestGet({env}){return json({service:"vAIn Ϙ",model:"@cf/meta/llama-3.2-1b-instruct",ai_binding:Boolean(env.AI),d1_binding:Boolean(env.DB),memory:"D1-backed",research:"free public RSS feeds; refreshes on visit at most every six hours",site_changes:"preview and explicit approval",self_modification:false,notes:"No autonomous code execution, model-weight modification, or production deployment is enabled."})}
