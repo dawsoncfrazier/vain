@@ -1,23 +1,35 @@
 # vAIn Ϙ — Cloudflare Pages deployment
 
-The public interface is a static site with server-side Pages Functions in `functions/api/`.
-Chat inference uses the Cloudflare Workers AI binding; no model files or local Ollama process are required for the hosted chat path.
+This repository is configured for Cloudflare Pages Functions with two bindings:
 
-## Deploy (free-tier path)
+- **Workers AI**: `AI` (configured in `wrangler.toml`)
+- **Cloudflare D1**: `DB`, targeting the existing `vain-memory` database (configured in `wrangler.toml`)
 
-1. Sign in to Cloudflare and open **Workers & Pages → Create → Pages → Connect to Git**.
-2. Select `dawsoncfrazier/vain`, production branch `main`.
-3. Framework preset: **None**. Build command: leave blank. Build output directory: `/` (repository root).
-4. In the Pages project, open **Settings → Bindings → Add → Workers AI**. Set the variable/binding name to exactly `AI`. Save and redeploy.
-5. Open the deployed `*.pages.dev` URL and check `/api/health`. It should return `"ok": true`.
-6. Send a test message in the embedded chat. A working response confirms the API and model binding.
+## Bindings and migration
 
-The repository includes `wrangler.toml` with the Pages output directory and Workers AI binding declaration. If the dashboard does not pick up the binding from the config, add it in the dashboard as described above.
+1. In Cloudflare Pages, open the vAIn project → **Settings → Bindings**.
+2. Confirm a Workers AI binding named exactly `AI`.
+3. Confirm a D1 database binding named exactly `DB`, selecting the existing `vain-memory` database.
+4. Ensure the production and preview environments have the intended bindings. Save changes and redeploy.
+5. Apply the checked-in migration with Wrangler from the repository root:
+   `npx wrangler d1 migrations apply vain-memory --remote`
+6. Check `/api/health`. It reports binding presence separately from database reachability.
 
-## Important
+The checked-in migration creates the core tables with `IF NOT EXISTS`; it does not drop or rewrite existing tables. Review the migration output before applying it to a database containing important data.
 
-- GitHub Pages cannot execute the functions in `functions/api`; deploy this repository to **Cloudflare Pages** for chat to work.
-- The Pages URL is the new canonical site. GitHub Pages can remain as a static mirror, but it will not run the chat API.
-- Workers AI has free-plan usage limits and may throttle or change availability. This is not unlimited inference.
-- The hosted chat is a small cloud model, not the local Qwen 3 8B model. Your local model and SQLite memory are not automatically copied to the cloud.
-- Do not put API tokens or secrets in `index.html` or any public repository file.
+## Deployment
+
+- Framework preset: **None**
+- Build command: leave blank
+- Build output directory: `/` (repository root)
+- Production branch: `main`
+
+A branch preview can be used to test changes before merging. Do not merge or deploy to production until the configured bindings and migration have been verified.
+
+## Model and cost
+
+The chat endpoint currently uses a small Workers AI model. Model selection should be changed only after checking current availability, account quotas, and pricing. Do not add paid-provider keys to the frontend or commit secrets.
+
+## Security
+
+D1 binding configuration is not an authentication mechanism. Before exposing personal memory or chat history, enforce a verified owner identity (for example, Cloudflare Access JWT validation) on every data endpoint. Never trust an owner ID supplied by the browser.
