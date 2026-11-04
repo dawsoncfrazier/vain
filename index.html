@@ -89,7 +89,7 @@ async function send(){
  try{
   if(/\b(open|start|show)\b.*\b(lab|quantum)\b|\bquantum (lab|visualizer|visualization)\b/i.test(q)){addMessage("assistant","Opening a small, classical single-qubit state-vector experiment.");addLabDemo();return}
   if(/\b(research|investigate|look into|find recent|what(?:'s| is) new in)\b/i.test(q)){const d=await api("/api/research");addMessage("assistant",d.briefing?.summary||"I collected the latest available public-feed items.");addResearchResult(d);return}
-  const d=await api("/api/chat",{method:"POST",body:JSON.stringify({message:q,session_id:SESSION_ID})});addMessage("assistant",d.response||"The model returned no response.");
+  const d=await api("/api/chat",{method:"POST",body:JSON.stringify({message:q,session_id:SESSION_ID})});addMessage("assistant",d.response||"The model returned no response.");if(d.memory_action?.action){const rows=$(".msg.assistant"),last=rows[rows.length-1],bubble=last?.querySelector(".bubble");if(bubble){const chip=document.createElement("span");chip.className="pill";chip.style.display="inline-block";chip.style.marginTop="9px";chip.textContent=d.memory_action.action==="saved"?"Memory saved":"Memory updated";bubble.append(document.createElement("br"),chip)}}
  }catch(e){addMessage("assistant","Request failed: "+e.message)}finally{$("#send").disabled=false}
 }
 $("#send").onclick=send;$("#prompt").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}});$$("[data-prompt]").forEach(b=>b.onclick=()=>{$("#prompt").value=b.dataset.prompt;send()});
