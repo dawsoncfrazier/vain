@@ -4,3 +4,9 @@ compatibility_date = "2026-11-03"
 
 [ai]
 binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vain-memory"
+database_id = "80840e26-8f29-4a10-a54a-9e133f81801e"
+migrations_dir = "migrations"
