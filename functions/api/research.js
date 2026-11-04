@@ -1,3 +1,4 @@
+import { runChat, chain } from "../../src/engine.js";
 const json=(x,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{"content-type":"application/json","cache-control":"no-store"}});
 async function schema(db){await db.batch([
  db.prepare("CREATE TABLE IF NOT EXISTS research_items(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,url TEXT NOT NULL UNIQUE,source TEXT NOT NULL,summary TEXT,published_at TEXT,created_at TEXT NOT NULL)"),
@@ -17,7 +18,7 @@ async function refresh(env){
  if(!rows.results?.length)return null;
  let summary="New items collected from free public feeds. Open sources to inspect original evidence.";
  let question="Which new development, if any, should change vAIn's research priorities?";
- if(env.AI){try{const input=rows.results.slice(0,8).map(x=>({title:x.title,source:x.source,summary:(x.summary||"").slice(0,500),url:x.url}));const out=await env.AI.run("@cf/meta/llama-3.2-1b-instruct",{messages:[{role:"system",content:"You are vAIn's evidence-conscious research analyst. Based only on supplied source metadata/snippets, produce a concise 3-5 sentence briefing. Do not claim to have read full papers. Separate established facts from claims. Then propose ONE genuinely consequential open question for the user's research direction. Output JSON only: {summary:string,question:string}."},{role:"user",content:JSON.stringify(input)}],max_tokens:450,temperature:0.2});const raw=out.response||"";const parsed=JSON.parse(raw.slice(raw.indexOf("{"),raw.lastIndexOf("}")+1));if(parsed.summary)summary=parsed.summary;if(parsed.question)question=parsed.question}catch{}}
+ if(chain(env,"light").length){try{const input=rows.results.slice(0,8).map(x=>({title:x.title,source:x.source,summary:(x.summary||"").slice(0,500),url:x.url}));const out=await runChat(env,[{role:"system",content:"You are vAIn's evidence-conscious research analyst. Based only on supplied source metadata/snippets, produce a concise 3-5 sentence briefing. Do not claim to have read full papers. Separate established facts from claims. Then propose ONE genuinely consequential open question for the user's research direction. Output JSON only: {summary:string,question:string}."},{role:"user",content:JSON.stringify(input)}],{tier:"light",max_tokens:450,temperature:0.2});const raw=out.text||"";const parsed=JSON.parse(raw.slice(raw.indexOf("{"),raw.lastIndexOf("}")+1));if(parsed.summary)summary=parsed.summary;if(parsed.question)question=parsed.question}catch{}}
  await env.DB.prepare("INSERT INTO research_briefings(summary,question,created_at) VALUES(?,?,?)").bind(summary,question,now).run();
  return {summary,question,created_at:now,items:rows.results};
 }

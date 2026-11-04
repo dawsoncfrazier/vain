@@ -1,0 +1,1 @@
+{"type":"module","private":true,"scripts":{"test":"node --test test/run.test.js test/ui.test.js"}}
