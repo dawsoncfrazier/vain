@@ -1,6 +1,6 @@
 let jwks=null,expiry=0;
 const json=(x,s)=>new Response(JSON.stringify(x),{status:s,headers:{"content-type":"application/json","cache-control":"no-store"}});
-const decode=s=>JSON.parse(atob(s.replace(/-/g,"+").replace(/_/g,"/")));
+const decode=s=>{const b=s.replace(/-/g,"+").replace(/_/g,"/");return JSON.parse(atob(b+"=".repeat((4-b.length%4)%4)))};
 async function verify(token,team,aud){
  const p=token.split(".");if(p.length!==3)return null;let h,b;try{h=decode(p[0]);b=decode(p[1])}catch{return null}
  const now=Math.floor(Date.now()/1000),iss="https://"+team+".cloudflareaccess.com";
@@ -18,5 +18,5 @@ export async function onRequest(ctx){
  if(!claims)return json({error:"Authentication required."},401);
  const identity=typeof claims.email==="string"?claims.email:typeof claims.sub==="string"?claims.sub:"";
  if(!identity)return json({error:"Verified identity missing from access token."},403);
- ctx.data.vainOwnerId=await ownerKey(identity);return ctx.next();
+ ctx.data=ctx.data||{};ctx.data.vainOwnerId=await ownerKey(identity);return ctx.next();
 }
