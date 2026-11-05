@@ -1,170 +1,158 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080a10">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080a10">
 <title>vAIn Ϙ</title>
 <style>
-:root{color-scheme:dark;--bg:#080a10;--panel:#111725;--panel2:#161f31;--line:#263044;--text:#edf0fa;--muted:#8e9ab1;--accent:#a18aff;--good:#75d6a4;--bad:#ff858e;--warn:#e8c06a}
-*{box-sizing:border-box}html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;overflow:hidden}
-button,input,textarea,select{font:inherit;color:inherit}button{cursor:pointer}
-header{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
-.sigil{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--accent);color:#0a0a14;font-weight:800}
-#siteName{font-weight:700}#tagline{color:var(--muted);font-size:12px}
-.grow{flex:1}.pill{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:4px 11px;font-size:12px;color:var(--muted)}
-.pill.on{color:var(--good)}.pill.off{color:var(--bad)}
-.ghost{background:none;border:1px solid var(--line);border-radius:9px;padding:5px 10px;color:var(--muted)}
-select.ghost{max-width:190px}
-.work{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 0fr;transition:grid-template-columns .38s cubic-bezier(.2,.8,.2,1)}
-body[data-mode="memory"] .work,body[data-mode="research"] .work,body[data-mode="lab"] .work,body[data-mode="changes"] .work,body[data-mode="engines"] .work{grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr)}
-#chatcol{display:flex;flex-direction:column;min-width:0;min-height:0}
-#messages{flex:1;overflow:auto;padding:18px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-.welcome{margin:auto;text-align:center;max-width:520px;color:var(--muted)}.welcome h2{color:var(--text);margin:8px 0}
-.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
-.chip{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:6px 12px;font-size:13px}.chip:hover{border-color:var(--accent)}
-.msg{max-width:min(760px,100%);padding:10px 13px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line)}
-.msg.user{align-self:flex-end;background:color-mix(in srgb,var(--accent) 22%,var(--panel))}.msg.assistant{align-self:flex-start;background:var(--panel)}
-.meta{font-size:11px;color:var(--muted);margin-top:4px}
-#qwrap:empty{display:none}.qcard{margin:12px 16px 0;border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--panel2);border-radius:14px;padding:12px}
-.qcard textarea{width:100%;margin:8px 0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px;resize:vertical}
-.btn{border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:7px 13px}.btn.primary{background:var(--accent);border-color:var(--accent);color:#0a0a14;font-weight:600}.btn.good{background:#1f5a40;border-color:#3a8a68}.btn.bad{background:#5a2328;border-color:#8a3a40}.btn:disabled{opacity:.5}
-form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line);background:var(--panel)}
-#prompt{flex:1;resize:none;height:48px;max-height:160px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px}
-#stage{min-width:0;overflow:hidden;border-left:1px solid transparent;display:flex;flex-direction:column;background:var(--panel)}
-body:not([data-mode="chat"]) #stage{border-left-color:var(--line)}
-.stagehead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap}.stagehead h2{margin:0;font-size:16px}.stagehead .sub{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis}
-#stagebody{flex:1;overflow:auto;padding:14px 16px;min-width:300px}
-.card{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:11px 12px;margin-bottom:10px}
-.card h3{margin:0 0 5px;font-size:14px}.muted{color:var(--muted);font-size:13px}
-.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:999px;padding:1px 8px;margin-right:6px;color:var(--muted)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+:root{color-scheme:dark;--bg:#080a10;--panel:#111725;--text:#edf0fa;--muted:#8e9ab1;--accent:#a18aff;--good:#75d6a4;--bad:#ff858e;--glass:rgba(17,23,37,.72)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,sans-serif;overflow:hidden;transition:background 1.2s}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
+#scene{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s;pointer-events:none}
+#scene.on{opacity:.9}
+#fx{position:fixed;inset:0;pointer-events:none}
+#shell{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center}
+#brand{position:fixed;top:12px;left:14px;display:flex;align-items:center;gap:9px;z-index:3;background:var(--glass);border:1px solid #ffffff1a;border-radius:999px;padding:5px 13px 5px 6px;backdrop-filter:blur(10px)}
+.sigil{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#0a0a14;font-weight:800;transition:background 1s}
+#siteName{font-weight:650;font-size:13px}#dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .4s,box-shadow .4s}#dot.on{background:var(--good);box-shadow:0 0 10px var(--good)}#dot.off{background:var(--bad)}
+#hud{position:fixed;left:14px;bottom:86px;z-index:3;font-size:12px;color:var(--muted);background:var(--glass);border:1px solid #ffffff1a;border-radius:10px;padding:4px 10px;display:none}
+body.lab #hud{display:block}
+#messages{flex:1;width:100%;max-width:820px;overflow:auto;padding:64px 16px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;transition:opacity .8s}
+body.lab #messages{opacity:.9;max-height:40vh;flex:0 0 auto;margin-top:auto;padding-top:12px}
+.welcome{margin:auto;text-align:center;max-width:520px;color:var(--muted)}.welcome h2{color:var(--text);margin:10px 0}
+.msg{max-width:min(680px,92%);padding:10px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #ffffff1a;backdrop-filter:blur(12px);animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.msg.user{align-self:flex-end;background:color-mix(in srgb,var(--accent) 30%,transparent)}.msg.assistant{align-self:flex-start;background:var(--glass)}
+.meta{font-size:11px;color:var(--muted);margin-top:3px}
+.block{align-self:flex-start;width:min(680px,94%);border:1px solid color-mix(in srgb,var(--accent) 40%,#ffffff1a);background:var(--glass);border-radius:18px;padding:12px 14px;backdrop-filter:blur(14px);animation:rise .45s ease both}
+.block h3{margin:0 0 6px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.muted{color:var(--muted);font-size:13px}.err{color:var(--bad)}.ok{color:var(--good)}
+.btn{border:1px solid #ffffff26;background:#ffffff10;border-radius:999px;padding:6px 14px;transition:transform .15s,background .2s}.btn:hover{transform:translateY(-1px);background:#ffffff1c}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0a0a14;font-weight:650}.btn.good{background:#1f5a40;border-color:#3a8a68}.btn.bad{background:#5a2328;border-color:#8a3a40}.btn:disabled{opacity:.5}
+.chip{display:inline-flex;gap:8px;align-items:center;font-size:13px}
+.blk-input,.block textarea,.block input{width:100%;background:#00000055;border:1px solid #ffffff22;border-radius:12px;padding:8px 10px;margin-top:6px}
+.pv{position:relative;height:130px;border-radius:12px;overflow:hidden;border:1px solid #ffffff22;margin-top:6px}.pv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pv .cap{position:absolute;left:10px;bottom:8px;font-weight:650;text-shadow:0 1px 6px #000}
+.sw{display:inline-block;width:18px;height:18px;border-radius:50%;border:1px solid #ffffff44;vertical-align:middle}
+.item{border-top:1px solid #ffffff14;padding:7px 0}.item:first-of-type{border-top:0}
+.tag{display:inline-block;font-size:11px;border:1px solid #ffffff22;border-radius:999px;padding:0 8px;margin-right:6px;color:var(--muted)}
+.floats{position:relative;display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 2px}
+.floats figure{margin:0;width:150px;animation:drift 7s ease-in-out infinite alternate;transform-origin:center}
+.floats figure:nth-child(2){animation-delay:-2s;animation-duration:9s}.floats figure:nth-child(3){animation-delay:-4s;animation-duration:8s}
+.floats img{width:100%;border-radius:12px;border:1px solid #ffffff33;box-shadow:0 8px 28px #0008;display:block}
+.floats figcaption{font-size:11px;color:var(--muted);margin-top:4px}
+@keyframes drift{from{transform:translate(0,0) rotate(-2deg)}to{transform:translate(8px,-10px) rotate(2.5deg)}}
 .ex pre{white-space:pre-wrap;margin:3px 0;font:12.5px/1.45 ui-monospace,Menlo,monospace;color:#cfd8ea}
-.stagebody input,#stagebody textarea,#stagebody select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;margin:4px 0}
-.swatch{display:inline-block;width:22px;height:22px;border-radius:6px;border:1px solid var(--line);vertical-align:middle}
-.mini{border-radius:10px;padding:10px;margin:6px 0;border:1px solid var(--line)}
-.ok{color:var(--good)}.err{color:var(--bad)}.dim{opacity:.55}
-@media(max-width:820px){
- body[data-mode]:not([data-mode="chat"]) .work{grid-template-columns:minmax(0,1fr) 0fr}
- #stage{position:fixed;left:0;right:0;bottom:0;height:0;border-top:1px solid var(--line);transition:height .35s cubic-bezier(.2,.8,.2,1);z-index:5}
- body:not([data-mode="chat"]) #stage{height:76vh}#stagebody{min-width:0}#tagline{display:none}
-}
+a{color:var(--accent)}
+form{width:100%;max-width:820px;padding:10px 16px calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:2}
+#prompt{flex:1;resize:none;height:50px;max-height:170px;background:var(--glass);border:1px solid #ffffff2a;border-radius:25px;padding:13px 18px;backdrop-filter:blur(14px);outline:none;transition:border-color .3s,box-shadow .3s}
+#prompt:focus{border-color:var(--accent);box-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent)}
+#send{border-radius:50%;width:50px;height:50px;padding:0;font-size:20px}
+@media(max-width:600px){#siteName{display:none}.floats figure{width:110px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head>
-<body data-mode="chat">
-<header>
- <div class="sigil">Ϙ</div><div><div id="siteName">vAIn</div><div id="tagline">Persistent intelligence</div></div>
- <div class="grow"></div>
- <button class="pill" id="engineBadge" title="Which engine is answering">connecting…</button>
- <select class="ghost" id="picker" aria-label="Previous conversations"><option value="">Previous conversations…</option></select>
- <button class="ghost" id="newChat">＋ New</button>
-</header>
-<div class="work">
- <section id="chatcol">
-  <div id="qwrap"></div>
-  <div id="messages"><div class="welcome" id="welcome"><div class="sigil" style="margin:0 auto">Ϙ</div><h2>Talk to me. The workspace follows.</h2><div>Ask about your memory, research, training data, or my own site, and the matching panel opens beside this chat. Say "close" to put it away.</div>
-   <div class="chips" id="chips"></div></div></div>
-  <form id="f"><textarea id="prompt" placeholder="Message vAIn… (Enter to send, Shift+Enter for a new line)"></textarea><button class="btn primary" id="send" type="submit">Send</button></form>
- </section>
- <aside id="stage" aria-live="polite"><div class="stagehead"><h2 id="stageTitle"></h2><span class="sub" id="stageSub"></span><span class="grow"></span><button class="ghost" id="stageClose" aria-label="Close panel">✕</button></div><div id="stagebody"></div></aside>
+<body>
+<img id="scene" alt="" aria-hidden="true">
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="brand"><div class="sigil">Ϙ</div><span id="siteName">vAIn</span><span id="dot" title="engine status"></span></div>
+<div id="hud"></div>
+<div id="shell">
+ <div id="messages" aria-live="polite"><div class="welcome" id="welcome"><div class="sigil" style="margin:0 auto;width:42px;height:42px;font-size:22px">Ϙ</div><h2>Talk to me. Everything happens here.</h2><div>Try “make the background a unicorn meadow”, “remember this: …”, “go learn about black holes”, or “open the lab”.</div></div></div>
+ <form id="f"><textarea id="prompt" placeholder="Hey vAIn…" aria-label="Message vAIn"></textarea><button class="btn primary" id="send" type="submit" aria-label="Send">↑</button></form>
 </div>
+<script src="/fluid.js"></script>
 <script>
 const $=s=>document.querySelector(s);
-function h(tag,attrs,...kids){const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs||{})){if(k==="class")e.className=v;else if(k.startsWith("on"))e[k]=v;else if(v!==false&&v!=null)e.setAttribute(k,v)}for(const c of kids.flat()){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e}
+function h(tag,attrs,...kids){const e=document.createElement(tag);for(const[k,v]of Object.entries(attrs||{})){if(k==="class")e.className=v;else if(k.startsWith("on"))e[k]=v;else if(v!==false&&v!=null)e.setAttribute(k,v)}for(const c of kids.flat(Infinity)){if(c==null||c===false)continue;e.append(c.nodeType?c:document.createTextNode(String(c)))}return e}
 async function api(path,opts={}){const r=await fetch(path,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});let d={};try{d=await r.json()}catch(e){}if(!r.ok){const x=new Error(d.error||d.detail||("Request failed ("+r.status+")"));x.data=d;throw x}return d}
-let SESSION=(()=>{try{let id=localStorage.getItem("vain_session_id");if(!id){id=crypto.randomUUID().replace(/-/g,"");localStorage.setItem("vain_session_id",id)}return id}catch(e){return crypto.randomUUID().replace(/-/g,"")}})();
+const post=(p,b)=>api(p,{method:"POST",body:JSON.stringify(b)});
+const uuid=()=>{try{if(crypto.randomUUID)return crypto.randomUUID().replace(/-/g,"")}catch(e){}const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,"0")).join("")};
+let SESSION=(()=>{try{let id=localStorage.getItem("vain_session_id");if(!id){id=uuid();localStorage.setItem("vain_session_id",id)}return id}catch(e){return uuid()}})();
 function setSession(id){SESSION=id;try{localStorage.setItem("vain_session_id",id)}catch(e){}}
-let mode="chat",busy=false,lastEngine="";
+let busy=false,mode="chat",surface=null;
+try{const c=$("#fx");surface=new VainFluid.Surface(c);surface.start();window.addEventListener("resize",()=>surface.resize())}catch(e){surface=null}
 
-/* ---------- theme ---------- */
-function applyTheme(d){const r=document.documentElement.style;if(d.accent)r.setProperty("--accent",d.accent);if(d.background)r.setProperty("--bg",d.background);if(d.panel){r.setProperty("--panel",d.panel);r.setProperty("--panel2",d.panel)}if(d.site_name){$("#siteName").textContent=d.site_name;document.title=d.site_name}if(d.tagline)$("#tagline").textContent=d.tagline}
+/* ---------- appearance: vAIn can change this, but only what you accept ---------- */
+let committed={};
+const svgUrl=svg=>"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+function applyDesign(d){const r=document.documentElement.style;if(d.accent){r.setProperty("--accent",d.accent);surface&&surface.setAccent(d.accent)}if(d.background){r.setProperty("--bg",d.background)}if(d.panel)r.setProperty("--panel",d.panel);if(d.site_name){$("#siteName").textContent=d.site_name;document.title=d.site_name}
+ const s=$("#scene");if(d.scene_svg){s.src=svgUrl(d.scene_svg);s.className="on"}else if(d.scene_svg===""){s.className=""}}
+const remember=d=>{committed={...committed,...d}};
+
+/* ---------- messages and blocks ---------- */
+const stream=()=>$("#messages");
+function put(node){$("#welcome")?.remove();stream().append(node);stream().scrollTop=stream().scrollHeight;return node}
+function bubble(role,text,meta){const m=h("div",{class:"msg "+role},text);if(meta)m.append(h("div",{class:"meta"},meta));return put(m)}
+const shortEngine=e=>!e?"":e==="mac"?"your Mac":e==="workspace"?"":e==="memory"?"saved memory":e.replace(/^@cf\//,"");
+const blk=(title,...kids)=>put(h("div",{class:"block"},title?h("h3",{},title):null,...kids));
+const loading=()=>h("div",{class:"muted"},"…");
+
+const blocks={
+ mode(b){setMode(b.mode)},
+ saved(b){const row=h("div",{class:"chip"},h("span",{class:"ok"},"✓ Saved to memory"),h("span",{class:"muted"},"“"+b.text.slice(0,140)+"”"));
+  const undo=h("button",{class:"btn",type:"button",onclick:async()=>{try{await api("/api/vain/memory?id="+b.id,{method:"DELETE"});row.textContent="Forgotten.";}catch(e){row.textContent=e.message}}},"Undo");blk("",row,h("div",{class:"row"},undo))},
+ async memories(){const box=blk("Memory",loading());try{const d=await api("/api/vain/memory");box.lastChild.remove();if(!(d.memories||[]).length)box.append(h("div",{class:"muted"},"Nothing saved yet. Say “remember this: …”."));
+   for(const m of (d.memories||[]).slice(0,12)){const it=h("div",{class:"item"},h("span",{class:"tag"},(m.category||"").replace("_"," ")),m.text,h("div",{class:"row"},h("span",{class:"muted"},(m.created_at||"").slice(0,10)),h("button",{class:"btn",onclick:async()=>{try{await api("/api/vain/memory?id="+m.id,{method:"DELETE"});it.remove()}catch(e){alert(e.message)}}},"Forget")));box.append(it)}}catch(e){box.lastChild.textContent=e.message}},
+ learn(b){const kids=[];if(b.images&&b.images.length)kids.push(h("div",{class:"floats"},...b.images.map(i=>h("figure",{},h("img",{src:i.src,alt:i.caption,loading:"lazy",referrerpolicy:"no-referrer"}),h("figcaption",{},i.caption)))));
+  kids.push(h("div",{class:"muted"},"Sources (open, unverified until you check): ",(b.sources||[]).map(s=>[h("a",{href:s.url,target:"_blank",rel:"noopener noreferrer"},"["+s.n+"] "+s.title)," "])));
+  const keep=h("button",{class:"btn",type:"button",onclick:async()=>{keep.disabled=true;try{await post("/api/vain/memory",{text:"Learned about "+b.topic+": "+(b.summary||"").slice(0,1500),category:"note"});keep.textContent="Kept in memory"}catch(e){keep.disabled=false;alert(e.message)}}},"Keep in memory");
+  blk("Learned: "+b.topic,...kids,h("div",{class:"row"},keep))},
+ preview(b){const p=b.proposal;const box=blk("Preview");showProposal(box,p,true)},
+ async briefing(){const box=blk("Research",loading());try{const d=await api("/api/research");box.lastChild.remove();const br=d.briefing;if(br){box.append(h("div",{},br.summary),h("div",{class:"muted",style:"margin-top:6px"},"A question for you: "+br.question))}
+   for(const x of (d.items||[]).slice(0,5))box.append(h("div",{class:"item"},h("span",{class:"tag"},x.source),h("a",{href:x.url,target:"_blank",rel:"noopener noreferrer"},x.title)));
+   box.append(h("div",{class:"row"},h("button",{class:"btn",onclick:async()=>{try{await post("/api/research",{});box.remove();blocks.briefing()}catch(e){alert(e.message)}}},"Refresh now")))}catch(e){box.lastChild.textContent=e.message}},
+ async labdata(){const box=blk("Training examples",loading());const draw=async()=>{box.lastChild.remove?.();};try{const s=await api("/api/vain/lab");box.lastChild.remove();const out=h("div",{class:"muted"});
+   box.append(h("div",{},"Identity examples: "+s.identity_examples+" · Approved: "+s.approved+" · Waiting: "+s.candidates),h("div",{class:"row"},
+    h("button",{class:"btn",onclick:async()=>{try{const r=await post("/api/vain/lab",{action:"harvest"});out.textContent="Found "+r.added+" new candidates. Ask again to review them."}catch(e){out.textContent=e.message}}},"Find examples in my chats"),
+    h("button",{class:"btn good",onclick:async()=>{try{const r=await post("/api/vain/lab",{action:"build"});out.textContent="Built "+r.total+" examples ("+r.train+" train, "+r.valid+" valid)."}catch(e){out.textContent=e.message}}},"Build training files"),
+    h("a",{href:"/api/vain/lab?download=train"},"train.jsonl"),h("a",{href:"/api/vain/lab?download=valid"},"valid.jsonl")),out);
+   for(const c of(s.candidate_list||[]).slice(0,5)){const it=h("div",{class:"item ex"},h("b",{},"You:"),h("pre",{},c.user_text),h("b",{},"vAIn:"),h("pre",{},c.assistant_text),h("div",{class:"row"},h("button",{class:"btn good",onclick:async()=>{await post("/api/vain/lab",{action:"mark",id:c.id,status:"approved"});it.remove()}},"Approve"),h("button",{class:"btn bad",onclick:async()=>{await post("/api/vain/lab",{action:"mark",id:c.id,status:"rejected"});it.remove()}},"Reject")));box.append(it)}
+   box.append(h("div",{class:"muted"},"Training itself is run by you on your Mac or a free GPU notebook; nothing here trains by itself."))}catch(e){box.lastChild.textContent=e.message}},
+ async engines(){const box=blk("Engines",loading());try{const d=await api("/api/vain/engines");box.lastChild.remove();box.append(h("div",{class:d.mac&&d.mac.online?"ok":"muted"},"Your Mac: "+(d.mac&&d.mac.online?"online"+(d.mac.model?" · "+d.mac.model:""):"offline ("+((d.mac&&d.mac.error)||"")+")")));
+   for(const e of d.chain)box.append(h("div",{class:"item"},h("b",{},shortEngine(e.id)||e.id),h("span",{class:"tag",style:"margin-left:8px"},e.kind),h("span",{class:"muted"},"today "+e.ok_today+" ok / "+e.fail_today+" failed"+(e.cooling?" · cooling until "+String(e.until).slice(11,16)+" UTC":""))));
+   const out=h("div",{class:"muted"});box.append(h("div",{class:"row"},h("button",{class:"btn",onclick:async()=>{out.textContent="Testing…";try{const r=await api("/api/health?deep=1");out.textContent=r.inference&&r.inference.ok?"Live test passed via "+shortEngine(r.inference.engine):"Live test failed: "+(r.inference&&r.inference.error)}catch(e){out.textContent=e.message}}},"Run a live test"),out))}catch(e){box.lastChild.textContent=e.message}},
+ async sessions(){const box=blk("Earlier conversations",loading());try{const d=await api("/api/sessions");box.lastChild.remove();const list=(d.sessions||[]).filter(s=>s.session_id!==SESSION);if(!list.length)box.append(h("div",{class:"muted"},"No earlier conversations."));
+   for(const s of list.slice(0,10))box.append(h("div",{class:"item"},h("button",{class:"btn",onclick:async()=>{setSession(s.session_id);stream().textContent="";await loadHistory()}},(s.title||"Untitled").replace(/\s+/g," ").slice(0,60))))}catch(e){box.lastChild.textContent=e.message}},
+ question(b){showQuestion(b.question)},
+};
+function showQuestion(q){if(!q)return;const ta=h("textarea",{rows:"2",placeholder:"Your answer (saved to memory as something you told me)"});const msg=h("span",{class:"muted"});let box;
+ const ok=h("button",{class:"btn primary",type:"button",onclick:async()=>{ok.disabled=true;try{await post("/api/vain/questions",{id:q.id,answer:ta.value});box.remove();bubble("assistant","Thank you. I saved that.")}catch(e){msg.textContent=e.message;ok.disabled=false}}},"Answer");
+ const sk=h("button",{class:"btn",type:"button",onclick:async()=>{try{await post("/api/vain/questions",{id:q.id,action:"skip"});box.remove()}catch(e){msg.textContent=e.message}}},"Skip");
+ box=blk("vAIn would like to ask",h("div",{},q.question),q.why?h("div",{class:"muted"},q.why):null,ta,h("div",{class:"row"},ok,sk,msg))}
+
+/* design preview bubble: shows it live, you decide */
+function showProposal(box,p,first){box.textContent="";box.append(h("h3",{},"Preview"));const d=p.design||{};
+ if(first)applyDesign(d); // temporary: reverted if you deny
+ const pv=h("div",{class:"pv",style:"background:"+(d.background||"#080a10")});if(d.scene_svg)pv.append(h("img",{src:svgUrl(d.scene_svg),alt:"proposed background"}));pv.append(h("div",{class:"cap",style:"color:"+(d.accent||"#fff")},(d.site_name||"")+" · "+(d.tagline||"")));
+ box.append(h("div",{class:"muted"},"“"+p.request+"”"),pv,h("div",{class:"row"},...["accent","background","panel"].map(k=>h("span",{class:"muted"},h("span",{class:"sw",style:"background:"+(d[k]||"#000")})," "+(d[k]||"")))));
+ const status=h("div",{class:"muted"},"Showing this live now. Nothing is saved until you accept.");const edit=h("div");
+ const accept=h("button",{class:"btn good",type:"button",onclick:async()=>{try{await post("/api/site/approve",{id:p.id});remember(d);row.remove();edit.remove();status.className="ok";status.textContent="Accepted. This is how I look now."}catch(e){status.className="err";status.textContent=e.message}}},"Accept");
+ const deny=h("button",{class:"btn bad",type:"button",onclick:async()=>{try{await post("/api/site/reject",{id:p.id});applyDesign({scene_svg:committed.scene_svg||"",accent:committed.accent||"#a18aff",background:committed.background||"#080a10",panel:committed.panel||"#111725",site_name:committed.site_name||"vAIn"});row.remove();edit.remove();status.textContent="Discarded. Back to how I was."}catch(e){status.className="err";status.textContent=e.message}}},"Deny");
+ const amend=h("button",{class:"btn",type:"button",onclick:()=>{edit.textContent="";const t=h("input",{placeholder:"What should change? e.g. more purple, add a rainbow"});const go=h("button",{class:"btn primary",type:"button",onclick:async()=>{go.disabled=true;status.textContent="Revising…";try{const r=await post("/api/site/proposals",{request:t.value,base_id:p.id});showProposal(box,{...r,id:r.id,request:r.request,design:r.design},true)}catch(e){status.className="err";status.textContent=e.message;go.disabled=false}}},"Revise");t.onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();go.click()}};edit.append(t,h("div",{class:"row"},go));t.focus&&t.focus()}},"Amend");
+ const row=h("div",{class:"row"},accept,deny,amend);box.append(row,edit,status)}
+
+/* ---------- modes: the page itself changes ---------- */
+function setMode(m){mode=m;document.body.classList.toggle("lab",m==="lab");surface&&surface.setMode(m==="lab"?"lab":"idle");updateHud()}
+function updateHud(){const hud=$("#hud");if(mode!=="lab"||!surface){hud.textContent="";return}const s=surface.world.stats();hud.textContent="lab · "+s.nodes+" concepts · "+s.links+" links · "+s.strong+" strongly tied — your words, visualised (not a physics simulation)"}
+function feed(text,who){if(mode==="lab"&&surface){surface.world.addText(text,who);surface.pulse();updateHud()}}
 
 /* ---------- chat ---------- */
-function bubble(role,text,meta){$("#welcome")?.remove();const m=h("div",{class:"msg "+role},text);if(meta)m.append(h("div",{class:"meta"},meta));$("#messages").append(m);$("#messages").scrollTop=$("#messages").scrollHeight;return m}
-function card(node){$("#welcome")?.remove();$("#messages").append(node);$("#messages").scrollTop=$("#messages").scrollHeight}
-function shortEngine(e){return !e?"":e==="mac"?"your Mac":e==="workspace"?"workspace":e==="memory"?"saved memory":e.replace(/^@cf\//,"")}
-async function send(text){if(busy||!text.trim())return;busy=true;$("#send").disabled=true;bubble("user",text);const wait=bubble("assistant","…");
+async function send(text){if(busy||!text.trim())return;busy=true;$("#send").disabled=true;bubble("user",text);feed(text,"you");surface&&mode!=="lab"&&surface.setMode("thinking");const wait=bubble("assistant","…");
  try{const d=await api("/api/chat",{method:"POST",body:JSON.stringify({message:text,session_id:SESSION})});wait.remove();
-  const eng=shortEngine(d.engine);bubble("assistant",d.response||"",eng?("via "+eng+(d.fell_back?" (fallback)":"")):"");
-  if(d.engine&&!["workspace","memory"].includes(d.engine)){lastEngine=d.engine;setBadge(true,eng)}
-  handleUi(d.ui)}
+  const eng=shortEngine(d.engine);bubble("assistant",d.response||"",eng?("via "+eng+(d.fell_back?" (fallback)":"")):"");feed(d.response||"","vain");
+  if(d.engine&&!["workspace","memory"].includes(d.engine))setDot(true);
+  for(const b of d.blocks||[]){const f=blocks[b.type];if(f)await f(b)}}
  catch(e){wait.textContent="Error: "+e.message+(e.data&&e.data.tried?" ("+e.data.tried.map(t=>shortEngine(t.engine)+": "+t.note).join("; ")+")":"")}
- busy=false;$("#send").disabled=false;if(mode==="chat")loadQuestion()}
-function handleUi(ui){if(!ui)return;
- if(ui.question!==undefined){showQuestion(ui.question)}
- if(ui.mode==="changes"&&ui.proposal){setMode("changes",{highlight:ui.proposal})}
- else if(ui.mode){setMode(ui.mode)}
- else if(ui.refresh&&mode===ui.refresh){panels[mode].render()}}
+ busy=false;$("#send").disabled=false;surface&&surface.setMode(mode==="lab"?"lab":"idle")}
+function setDot(ok){$("#dot").className=ok?"on":"off"}
 $("#f").onsubmit=ev=>{ev.preventDefault();const t=$("#prompt").value;$("#prompt").value="";send(t)};
 $("#prompt").addEventListener("keydown",ev=>{if(ev.key==="Enter"&&!ev.shiftKey){ev.preventDefault();$("#f").requestSubmit()}});
-for(const t of ["Show my memory","What's new in AI research?","Open the lab","Which engine are you using?"])$("#chips").append(h("button",{class:"chip",type:"button",onclick:()=>send(t)},t));
-
-/* ---------- conversations ---------- */
+$("#dot").onclick=()=>send("Which engine are you using?");
 async function loadHistory(){try{const d=await api("/api/history?session_id="+encodeURIComponent(SESSION));for(const x of d.history||[])bubble(x.role==="user"?"user":"assistant",x.content)}catch(e){}}
-async function loadPicker(){try{const d=await api("/api/sessions");const p=$("#picker");p.textContent="";p.append(h("option",{value:""},"Previous conversations…"));for(const s of d.sessions||[]){if(s.session_id===SESSION)continue;p.append(h("option",{value:s.session_id},(s.title||"Untitled").replace(/\s+/g," ").slice(0,48)))}}catch(e){}}
-$("#picker").onchange=async ev=>{const id=ev.target.value;if(!id)return;setSession(id);$("#messages").textContent="";await loadHistory();ev.target.value="";loadPicker()};
-$("#newChat").onclick=()=>{setSession(crypto.randomUUID().replace(/-/g,""));$("#messages").textContent="";$("#messages").append($("#welcome")||h("div"));loadPicker()};
-
-/* ---------- questions ---------- */
-function showQuestion(q){const w=$("#qwrap");w.textContent="";if(!q)return;
- const ta=h("textarea",{rows:"2",placeholder:"Your answer (saved to my memory as something you told me)"});const msg=h("span",{class:"muted"});
- const ok=h("button",{class:"btn primary",type:"button",onclick:async()=>{ok.disabled=true;try{await api("/api/vain/questions",{method:"POST",body:JSON.stringify({id:q.id,answer:ta.value})});w.textContent="";bubble("assistant","Thank you. I saved that.","via workspace")}catch(e){msg.textContent=e.message;ok.disabled=false}}},"Answer");
- const sk=h("button",{class:"btn",type:"button",onclick:async()=>{try{await api("/api/vain/questions",{method:"POST",body:JSON.stringify({id:q.id,action:"skip"})});w.textContent=""}catch(e){msg.textContent=e.message}}},"Skip");
- w.append(h("div",{class:"qcard"},h("b",{},"vAIn would like to ask you something"),h("div",{},q.question),q.why?h("div",{class:"muted"},q.why):null,ta,ok," ",sk," ",msg))}
-async function loadQuestion(){try{const d=await api("/api/vain/questions");showQuestion(d.question)}catch(e){}}
-
-/* ---------- panels: the stage morphs to the current function ---------- */
-const stage=$("#stagebody");
-function setMode(m,data){mode=m;document.body.dataset.mode=m;if(m==="chat"){stage.textContent="";return}const p=panels[m];$("#stageTitle").textContent=p.title;$("#stageSub").textContent=p.sub;p.render(data)}
-$("#stageClose").onclick=()=>setMode("chat");
-const note=t=>h("div",{class:"muted"},t);
-const panels={
- memory:{title:"Memory",sub:"what I have saved, as you told me",async render(){stage.textContent="";stage.append(note("Loading…"));
-  try{const d=await api("/api/vain/memory");stage.textContent="";
-   const cat=h("select",{},...["personal_fact","project_fact","preference","instruction","note"].map(c=>h("option",{value:c},c.replace("_"," "))));const txt=h("textarea",{rows:"2",placeholder:"Add something for me to remember"});
-   stage.append(h("div",{class:"card"},h("h3",{},"Add to memory"),cat,txt,h("button",{class:"btn primary",onclick:async()=>{try{await api("/api/vain/memory",{method:"POST",body:JSON.stringify({text:txt.value,category:cat.value})});panels.memory.render()}catch(e){alert(e.message)}}},"Save")));
-   if(!(d.memories||[]).length)stage.append(note("Nothing saved yet. State a fact (\"I graduated in 2026\") and I'll keep it."));
-   for(const m of d.memories||[])stage.append(h("div",{class:"card"},h("span",{class:"tag"},(m.category||"").replace("_"," ")),h("span",{class:"tag"},m.source||""),h("div",{},m.text),h("div",{class:"row"},h("span",{class:"muted"},(m.created_at||"").slice(0,10)),h("button",{class:"ghost",onclick:async()=>{try{await api("/api/vain/memory?id="+m.id,{method:"DELETE"});panels.memory.render()}catch(e){alert(e.message)}}},"Forget"))))}
-  catch(e){stage.textContent="";stage.append(h("div",{class:"err"},e.message))}}},
- research:{title:"Research desk",sub:"free public sources, unverified until you check them",async render(){stage.textContent="";stage.append(note("Loading…"));
-  try{const d=await api("/api/research");stage.textContent="";const b=d.briefing;
-   stage.append(h("div",{class:"row"},h("button",{class:"btn",onclick:async()=>{try{await api("/api/research",{method:"POST",body:"{}"});panels.research.render()}catch(e){alert(e.message)}}},"Refresh now")));
-   if(b){stage.append(h("div",{class:"card"},h("h3",{},"Briefing"),h("div",{},b.summary),h("div",{class:"muted"},(b.created_at||"").slice(0,16).replace("T"," ")),h("h3",{style:"margin-top:8px"},"A question for you"),h("div",{},b.question),h("button",{class:"btn",style:"margin-top:6px",onclick:()=>{$("#prompt").value=b.question;$("#prompt").focus()}},"Discuss in chat")))}
-   for(const x of d.items||[])stage.append(h("div",{class:"card"},h("span",{class:"tag"},x.source),h("div",{},h("a",{href:x.url,target:"_blank",rel:"noopener noreferrer",style:"color:var(--accent)"},x.title)),h("div",{class:"muted"},(x.summary||"").slice(0,220))))}
-  catch(e){stage.textContent="";stage.append(h("div",{class:"err"},e.message))}}},
- lab:{title:"Lab",sub:"approved examples become training files; nothing here trains by itself",async render(){stage.textContent="";stage.append(note("Loading…"));
-  try{const s=await api("/api/vain/lab");stage.textContent="";const out=h("div",{class:"muted"});
-   stage.append(h("div",{class:"card"},h("h3",{},"Dataset"),h("div",{},"Identity examples: "+s.identity_examples+" · Approved: "+s.approved+" · Waiting for review: "+s.candidates),
-    h("div",{class:"row",style:"margin-top:6px"},h("button",{class:"btn",onclick:async()=>{try{const r=await api("/api/vain/lab",{method:"POST",body:JSON.stringify({action:"harvest"})});out.textContent="Found "+r.added+" new candidates.";panels.lab.render()}catch(e){out.textContent=e.message}}},"Find new examples in my chats"),
-    h("button",{class:"btn good",onclick:async()=>{try{const r=await api("/api/vain/lab",{method:"POST",body:JSON.stringify({action:"build"})});out.textContent="Built "+r.total+" examples ("+r.train+" train, "+r.valid+" valid). Download below."}catch(e){out.textContent=e.message}}},"Build training files")),
-    h("div",{class:"row"},h("a",{href:"/api/vain/lab?download=train",style:"color:var(--accent)"},"train.jsonl"),h("a",{href:"/api/vain/lab?download=valid",style:"color:var(--accent)"},"valid.jsonl")),out));
-   const q=h("input",{placeholder:"What someone might ask vAIn"}),a=h("textarea",{rows:"3",placeholder:"The perfect answer you want vAIn to give"});
-   stage.append(h("div",{class:"card"},h("h3",{},"Write a perfect answer yourself"),q,a,h("button",{class:"btn primary",onclick:async()=>{try{await api("/api/vain/lab",{method:"POST",body:JSON.stringify({action:"add",user_text:q.value,assistant_text:a.value})});panels.lab.render()}catch(e){out.textContent=e.message}}},"Add as approved example")));
-   stage.append(h("div",{class:"card"},h("h3",{},"Next: train it (you start each run)"),note("Download the files, then run the Mac script (lab/train_mlx_local.sh) or a free GPU notebook (lab/train_cloud.py). Test the result with lab/selfcheck.py and promote it only if it wins.")));
-   for(const c of s.candidate_list||[])stage.append(h("div",{class:"card ex"},h("b",{},"You:"),h("pre",{},c.user_text),h("b",{},"vAIn:"),h("pre",{},c.assistant_text),h("div",{class:"row"},h("button",{class:"btn good",onclick:async()=>{await api("/api/vain/lab",{method:"POST",body:JSON.stringify({action:"mark",id:c.id,status:"approved"})});panels.lab.render()}},"Approve"),h("button",{class:"btn bad",onclick:async()=>{await api("/api/vain/lab",{method:"POST",body:JSON.stringify({action:"mark",id:c.id,status:"rejected"})});panels.lab.render()}},"Reject"))))}
-  catch(e){stage.textContent="";stage.append(h("div",{class:"err"},e.message))}}},
- changes:{title:"Proposed changes",sub:"nothing is applied until you approve it",async render(data){stage.textContent="";stage.append(note("Loading…"));
-  try{const d=await api("/api/site/proposals");stage.textContent="";let list=(d.proposals||[]);
-   if(data&&data.highlight&&!list.some(p=>p.id===data.highlight.id))list=[{...data.highlight,design:data.highlight.design},...list];
-   if(!list.length)stage.append(note("No proposals yet. Try: \"make the accent colour teal\"."));
-   for(const p of list.slice(0,12)){const dd=p.design||{};const pending=p.status==="pending";
-    stage.append(h("div",{class:"card"+(data&&data.highlight&&data.highlight.id===p.id?" hl":""),style:data&&data.highlight&&data.highlight.id===p.id?"border-color:var(--accent)":""},h("span",{class:"tag"},p.status),h("div",{},p.request),
-     h("div",{class:"mini",style:"background:"+(dd.background||"#080a10")+";border-color:"+(dd.accent||"#a18aff")},h("b",{style:"color:"+(dd.accent||"#a18aff")},dd.site_name||""),h("div",{class:"mini",style:"background:"+(dd.panel||"#111725")+";margin:6px 0 0"},dd.tagline||"")),
-     h("div",{class:"row"},...["accent","background","panel"].map(k=>h("span",{},h("span",{class:"swatch",style:"background:"+(dd[k]||"#000")})," ",h("span",{class:"muted"},dd[k]||"")))),
-     pending?h("div",{class:"row",style:"margin-top:8px"},h("button",{class:"btn good",onclick:async()=>{try{await api("/api/site/approve",{method:"POST",body:JSON.stringify({id:p.id})});applyTheme(dd);panels.changes.render()}catch(e){alert(e.message)}}},"Approve"),h("button",{class:"btn bad",onclick:async()=>{try{await api("/api/site/reject",{method:"POST",body:JSON.stringify({id:p.id})});panels.changes.render()}catch(e){alert(e.message)}}},"Discard")):null))}
-   stage.append(note("These are design settings. Code-level changes will arrive with the Mac studio, with a diff and a PIN."))}
-  catch(e){stage.textContent="";stage.append(h("div",{class:"err"},e.message))}}},
- engines:{title:"Engines",sub:"who is answering right now",async render(){stage.textContent="";stage.append(note("Checking…"));
-  try{const d=await api("/api/vain/engines");stage.textContent="";
-   stage.append(h("div",{class:"card"},h("h3",{},"Your Mac"),h("div",{class:d.mac&&d.mac.online?"ok":"dim"},d.mac&&d.mac.online?("online"+(d.mac.model?" · "+d.mac.model:"")):("offline · "+((d.mac&&d.mac.error)||"")))));
-   stage.append(h("div",{class:"muted"},"Order of preference, biggest first. Failed engines cool down and are skipped."));
-   for(const e of d.chain)stage.append(h("div",{class:"card"+(e.cooling?" dim":"")},h("b",{},shortEngine(e.id)),h("span",{class:"tag",style:"margin-left:8px"},e.kind),h("div",{class:"muted"},"today: "+e.ok_today+" ok, "+e.fail_today+" failed"+(e.cooling?" · cooling until "+e.until.slice(11,16)+" UTC":"")),e.last_error?h("div",{class:"err"},e.last_error):null));
-   const out=h("div",{class:"muted"});stage.append(h("button",{class:"btn",onclick:async()=>{out.textContent="Testing…";try{const r=await api("/api/health?deep=1");out.textContent=r.inference&&r.inference.ok?"Live test passed via "+shortEngine(r.inference.engine):"Live test failed: "+(r.inference&&r.inference.error)}catch(e){out.textContent=e.message}}},"Run a live test"),out)}
-  catch(e){stage.textContent="";stage.append(h("div",{class:"err"},e.message))}}},
-};
-function setBadge(ok,text){const b=$("#engineBadge");b.textContent=ok?("● "+text):"● "+text;b.className="pill "+(ok?"on":"off")}
-$("#engineBadge").onclick=()=>send("Which engine are you using?");
 
 /* ---------- start ---------- */
 (async()=>{
- try{applyTheme(await api("/api/site-settings"))}catch(e){}
- try{const d=await api("/api/health");setBadge(!!d.ok,d.ok?(d.mac_configured?"ready · Mac + cloud":"ready · cloud"):"engine missing")}catch(e){setBadge(false,"offline")}
- await loadHistory();loadPicker();loadQuestion();setInterval(()=>{if(mode==="chat")loadQuestion()},300000);
+ try{const s=await api("/api/site-settings");applyDesign(s);remember(s)}catch(e){}
+ try{const d=await api("/api/health");setDot(!!d.ok)}catch(e){setDot(false)}
+ await loadHistory();
+ try{const q=await api("/api/vain/questions");if(q.question)showQuestion(q.question)}catch(e){}
 })();
 </script></body></html>

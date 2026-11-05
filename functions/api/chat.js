@@ -1,6 +1,7 @@
 import { runChat } from "../../src/engine.js";
 import { IDENTITY } from "../../src/identity.js";
-import { detectIntent, HELP } from "../../src/intent.js";
+import { detectIntent, HELP, stripAddress } from "../../src/intent.js";
+import { learn } from "../../src/learn.js";
 import { ensureQuestion, currentQuestion, skipQuestion } from "../../src/questions.js";
 import { createProposal } from "../../src/site.js";
 
@@ -33,11 +34,12 @@ export function directRecall(q, mem) {
   return null;
 }
 
-const PANEL_TEXT = {
-  memory: "Opening what I have saved. Say \"forget <text>\" to remove one.",
-  research: "Opening the research desk. Items come from free public feeds and are unverified until you check the sources.",
-  lab: "Opening the lab. Approve the examples you'd be proud of, and I'll turn them into training files.",
-  engines: "Here is which engines I'm using right now.",
+const BLOCK_TEXT = {
+  memories: "Here's what I have saved. Say \"forget <text>\" to remove one.",
+  briefing: "Here's the latest from my free public sources. They're unverified until you check them.",
+  labdata: "Here are the examples waiting for your review. Nothing trains until you start a run.",
+  engines: "Here's which engines I'm using right now.",
+  sessions: "Here are your earlier conversations.",
 };
 
 export async function onRequestPost({ request, env }) {
@@ -56,46 +58,55 @@ export async function onRequestPost({ request, env }) {
   ]);
   try {
     // 1. forgetting
-    const explicitForget = message.match(/^(?:please\s+)?forget(?:\s+that)?\s+(.+)$/i);
+    const explicitForget = stripAddress(message).match(/^(?:please\s+)?forget(?:\s+that)?\s+(.+)$/i);
     if (explicitForget) {
       const term = explicitForget[1].trim();
       const found = await env.DB.prepare("SELECT id FROM memory_entries WHERE instr(lower(text),lower(?))>0 ORDER BY id DESC LIMIT 2").bind(term).all();
-      if (found.results?.length === 1) { await env.DB.prepare("DELETE FROM memory_entries WHERE id=?").bind(found.results[0].id).run(); const response = "I removed the matching saved memory."; await persist(response); return json({ response, persisted: true, memory_action: "deleted", ui: { refresh: "memory" } }); }
+      if (found.results?.length === 1) { await env.DB.prepare("DELETE FROM memory_entries WHERE id=?").bind(found.results[0].id).run(); const response = "I removed the matching saved memory."; await persist(response); return json({ response, persisted: true, memory_action: "deleted", blocks: [] }); }
       if (found.results?.length > 1) return json({ response: "I found more than one matching memory. Please be more specific so I don't remove the wrong one.", persisted: false });
       return json({ response: "I couldn't find a saved memory matching that wording.", persisted: false });
     }
     // 2. workspace intents: the conversation decides what the interface does
     const intent = detectIntent(message);
     if (intent) {
-      let response, ui = null;
+      let response, ui = null, blocks = [];
       if (intent.kind === "help") response = HELP;
-      else if (intent.kind === "close") { response = "Closed."; ui = { mode: "chat" }; }
-      else if (intent.kind === "panel") { response = PANEL_TEXT[intent.mode]; ui = { mode: intent.mode }; }
-      else if (intent.kind === "question") { const q = await ensureQuestion(env, { force: true }); response = "Here is what I most want to know right now:\n\n" + q.question; ui = { question: q }; }
-      else if (intent.kind === "skip") { const q = await currentQuestion(env.DB); if (q) { await skipQuestion(env.DB, q.id); response = "Skipped. I'll ask something else later."; ui = { question: null }; } else response = "I have no open question."; }
-      else if (intent.kind === "help_site") response = "Tell me what to change, for example: /site make the accent colour teal.";
+      else if (intent.kind === "close") { response = "Back to plain conversation."; blocks = [{ type: "mode", mode: "chat" }]; }
+      else if (intent.kind === "lab") { response = "The lab is open. The whole page is the simulation now: everything you type becomes part of it. Say \"close\" to leave."; blocks = [{ type: "mode", mode: "lab" }]; }
+      else if (intent.kind === "block") { response = BLOCK_TEXT[intent.block]; blocks = [{ type: intent.block }]; }
+      else if (intent.kind === "learn_vague") response = "Learn about what? Give me a topic, for example: go learn about solid-state batteries.";
+      else if (intent.kind === "learn") {
+        try { const l = await learn(env, intent.topic); response = l.found ? l.summary : l.summary; blocks = l.found ? [{ type: "learn", ...l }] : []; }
+        catch (e) { response = "I couldn't read about that right now: " + String(e?.message || e).slice(0, 160); }
+      }
+      else if (intent.kind === "question") { const q = await ensureQuestion(env, { force: true }); response = "Here is what I most want to know right now:\n\n" + q.question; blocks = [{ type: "question", question: q }]; }
+      else if (intent.kind === "skip") { const q = await currentQuestion(env.DB); if (q) { await skipQuestion(env.DB, q.id); response = "Skipped. I'll ask something else later."; } else response = "I have no open question."; }
+      else if (intent.kind === "help_site") response = "Tell me what to change, for example: make the background a unicorn meadow.";
       else if (intent.kind === "site_change") {
-        try { const p = await createProposal(env, intent.goal); response = "I drafted that as a design proposal using " + p.engine + ". Nothing changes until you approve it."; ui = { mode: "changes", proposal: p }; }
+        try { const p = await createProposal(env, intent.goal); response = "Here's a preview. Nothing changes until you accept it." + (p.note ? " " + p.note : ""); blocks = [{ type: "preview", proposal: p }]; }
         catch (e) { response = "I couldn't draft that change: " + String(e?.message || e).slice(0, 200); }
       }
-      await persist(response); return json({ response, persisted: true, engine: "workspace", ui });
+      await persist(response); return json({ response, persisted: true, engine: intent.kind === "learn" || intent.kind === "site_change" ? "workspace" : "workspace", blocks });
     }
     // 3. remembering what the owner states (never questions)
-    const explicitRemember = message.match(/^(?:remember(?:\s+that)?|keep\s+in\s+mind(?:\s+that)?)\s+(.{5,3000})$/i);
+    const addressed = stripAddress(message);
+    const explicitRemember = addressed.match(/^(?:please\s+)?(?:remember|keep\s+in\s+mind|note|save)(?:\s+(?:this|that))?\s*[:,\-]?\s*(.{5,3000})$/is);
+    let savedBlock = null;
     const joking = /\b(just kidding|jk|i am joking|i'm joking|im joking|that was a joke)\b/i.test(message);
-    const autobiographical = /^(?:I(?:\s|')|my\s|we\s|our\s)/i.test(message) && !/\?\s*$/.test(message);
+    const autobiographical = /^(?:I(?:\s|')|my\s|we\s|our\s)/i.test(addressed) && !/\?\s*$/.test(addressed);
     const sensitive = /\b(password|passcode|social security|ssn|credit card|bank account|home address|phone number|medical|diagnosis|medication|sexuality|sex life|religion|political affiliation)\b/i.test(message);
     if (!joking && !sensitive && (explicitRemember || autobiographical)) {
-      const savedText = explicitRemember ? explicitRemember[1].trim() : message;
+      const savedText = explicitRemember ? explicitRemember[1].trim() : addressed;
       const category = /\b(prefer|like|love|want|use)\b/i.test(message) ? "preference" : /\b(project|vAIn|vain|build|develop|code|website|app|system|workflow|setup)\b/i.test(message) ? "project_fact" : "personal_fact";
       await ensureSchema(env.DB);
-      await env.DB.prepare("INSERT INTO memory_entries(text,category,source,created_at) VALUES(?,?,?,?)").bind(savedText, category, "user_statement", stamp).run();
+      const ins = await env.DB.prepare("INSERT INTO memory_entries(text,category,source,created_at) VALUES(?,?,?,?)").bind(savedText, category, "user_statement", stamp).run();
+      savedBlock = { type: "saved", id: ins.meta?.last_row_id, text: savedText, category };
       await env.DB.prepare("DELETE FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') AND id NOT IN (SELECT id FROM memory_entries WHERE category IN ('personal_fact','project_fact','preference') ORDER BY id DESC LIMIT 200)").run();
     }
     const memory = await getMemory(env.DB);
     // 4. deterministic recall comes before any model call
     const recalled = directRecall(message, memory);
-    if (recalled) { await persist(recalled); return json({ response: recalled, persisted: true, engine: "memory" }); }
+    if (recalled) { await persist(recalled); return json({ response: recalled, persisted: true, engine: "memory", blocks: savedBlock ? [savedBlock] : [] }); }
     // 5. the model, through the engine router
     const prior = await env.DB.prepare("SELECT role,content FROM messages WHERE session_id=? ORDER BY id DESC LIMIT 16").bind(session).all();
     const history = (prior.results || []).reverse().map(x => ({ role: x.role, content: x.content }));
@@ -106,6 +117,6 @@ export async function onRequestPost({ request, env }) {
     try { out = await runChat(env, [{ role: "system", content: IDENTITY + memoryText }, ...history, { role: "user", content: message }], { max_tokens: 700, temperature: 0.35 }); }
     catch (e) { return json({ error: "No engine could answer right now.", detail: String(e?.message || e).slice(0, 200), tried: (e.tried || []).map(t => ({ engine: t.engine, note: t.skipped || t.error })) }, 502); }
     await persist(out.text);
-    return json({ response: out.text, engine: out.engine, model: out.model, persisted: true, fell_back: out.tried.length > 0 });
+    return json({ response: out.text, engine: out.engine, model: out.model, persisted: true, fell_back: out.tried.length > 0, blocks: savedBlock ? [savedBlock] : [] });
   } catch (e) { return json({ error: "Chat/database operation failed.", detail: String(e?.message || e).slice(0, 250) }, 502); }
 }
