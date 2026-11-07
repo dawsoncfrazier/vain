@@ -1,0 +1,2 @@
+const json=(x,s=200)=>new Response(JSON.stringify(x),{status:s,headers:{"content-type":"application/json","cache-control":"no-store"}});
+export async function onRequestGet({env}){if(!env.DB)return json({error:"D1 unavailable"},503);try{const r=await env.DB.prepare("SELECT id,request AS title,status,created_at FROM site_proposals ORDER BY id DESC LIMIT 50").all();return json({proposals:r.results||[]})}catch(e){return json({error:"Proposal store unavailable",detail:String(e.message||e)},500)}}
