@@ -25,3 +25,14 @@ These run against fakes, not live Cloudflare.
 
 ## Not in this version
 Code-level site editing from the cloud chat (needs the Mac studio + GitHub PR flow) and syncing local Mac memory into D1.
+
+## What you can say (all inside the chat)
+- Look and feel: "make the background a unicorn meadow", "change the font to serif", "make it calmer", "use solid bubbles", "more spacious". Each arrives as a live preview with Accept, Deny and Amend. Accepted changes persist; Deny restores the previous look.
+- Memory: "remember this: ...", "show my memory", "forget ...".
+- Research: "go learn about ...", "what's new in research". Reads Wikipedia only, cites it, floats its images.
+- Drawing: "draw ...". "You can surprise me" lets vAIn add a drawing to long answers on its own (at most one per 10 minutes, shown only in the chat). "Stop surprising me" turns that off; "ask first" makes it only offer a button. Anything persistent still needs your Accept.
+- Lab: "open the lab". Typed words become a living concept graph. Commands like "bell state", "ghz 4", "hadamard on 0 then cnot 0 1", "rotate 0 about z by 90 degrees", "measure all", "use 6 qubits" drive a real exact state-vector simulator (1 to 12 qubits). It is a classical simulation: no quantum speed-up, and nothing here has yet been benchmarked against a classical baseline.
+- Identity: "export yourself" downloads a checksummed file of my memories, look and approved training examples; the same box restores it (adds missing items, never deletes, refuses tampered files).
+
+## Not built yet
+Code-level self-editing of this website from the cloud chat (needs the Mac studio + GitHub PR flow with your approval), syncing local Mac memory into D1, real quantum-hardware adapters, and quantum-vs-classical benchmark experiments.

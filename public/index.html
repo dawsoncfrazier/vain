@@ -2,9 +2,12 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080a10">
 <title>vAIn Ϙ</title>
 <style>
-:root{color-scheme:dark;--bg:#080a10;--panel:#111725;--text:#edf0fa;--muted:#8e9ab1;--accent:#a18aff;--good:#75d6a4;--bad:#ff858e;--glass:rgba(17,23,37,.72)}
+:root{color-scheme:dark;--bg:#080a10;--panel:#111725;--text:#edf0fa;--muted:#8e9ab1;--accent:#a18aff;--good:#75d6a4;--bad:#ff858e;--glass:rgba(17,23,37,.72);--font:Inter,system-ui,-apple-system,sans-serif;--gap:12px;--pad:10px 14px}
+body[data-font=serif]{--font:Georgia,'Iowan Old Style',serif}body[data-font=mono]{--font:ui-monospace,Menlo,Consolas,monospace}body[data-font=rounded]{--font:ui-rounded,'SF Pro Rounded','Nunito',system-ui,sans-serif}
+body[data-density=compact]{--gap:6px;--pad:6px 11px}body[data-density=airy]{--gap:20px;--pad:14px 18px}
+body[data-bubble=solid] .msg.assistant,body[data-bubble=solid] .block{background:var(--panel);backdrop-filter:none}body[data-bubble=outline] .msg.assistant,body[data-bubble=outline] .block{background:transparent;backdrop-filter:none;border-color:var(--accent)}
 *{box-sizing:border-box}html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,sans-serif;overflow:hidden;transition:background 1.2s}
+body{background:var(--bg);color:var(--text);font:15px/1.55 var(--font);overflow:hidden;transition:background 1.2s}
 button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
 #scene{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.6s;pointer-events:none}
 #scene.on{opacity:.9}
@@ -15,10 +18,10 @@ button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}
 #siteName{font-weight:650;font-size:13px}#dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .4s,box-shadow .4s}#dot.on{background:var(--good);box-shadow:0 0 10px var(--good)}#dot.off{background:var(--bad)}
 #hud{position:fixed;left:14px;bottom:86px;z-index:3;font-size:12px;color:var(--muted);background:var(--glass);border:1px solid #ffffff1a;border-radius:10px;padding:4px 10px;display:none}
 body.lab #hud{display:block}
-#messages{flex:1;width:100%;max-width:820px;overflow:auto;padding:64px 16px 20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;transition:opacity .8s}
+#messages{flex:1;width:100%;max-width:820px;overflow:auto;padding:64px 16px 20px;display:flex;flex-direction:column;gap:var(--gap);scroll-behavior:smooth;transition:opacity .8s}
 body.lab #messages{opacity:.9;max-height:40vh;flex:0 0 auto;margin-top:auto;padding-top:12px}
 .welcome{margin:auto;text-align:center;max-width:520px;color:var(--muted)}.welcome h2{color:var(--text);margin:10px 0}
-.msg{max-width:min(680px,92%);padding:10px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #ffffff1a;backdrop-filter:blur(12px);animation:rise .35s ease both}
+.msg{max-width:min(680px,92%);padding:var(--pad);border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #ffffff1a;backdrop-filter:blur(12px);animation:rise .35s ease both}
 @keyframes rise{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
 .msg.user{align-self:flex-end;background:color-mix(in srgb,var(--accent) 30%,transparent)}.msg.assistant{align-self:flex-start;background:var(--glass)}
 .meta{font-size:11px;color:var(--muted);margin-top:3px}
@@ -42,6 +45,7 @@ body.lab #messages{opacity:.9;max-height:40vh;flex:0 0 auto;margin-top:auto;padd
 @keyframes drift{from{transform:translate(0,0) rotate(-2deg)}to{transform:translate(8px,-10px) rotate(2.5deg)}}
 .ex pre{white-space:pre-wrap;margin:3px 0;font:12.5px/1.45 ui-monospace,Menlo,monospace;color:#cfd8ea}
 a{color:var(--accent)}
+.art{display:block;width:100%;max-height:300px;object-fit:contain;border-radius:12px;border:1px solid #ffffff22;background:#0006;animation:drift 8s ease-in-out infinite alternate}
 form{width:100%;max-width:820px;padding:10px 16px calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:2}
 #prompt{flex:1;resize:none;height:50px;max-height:170px;background:var(--glass);border:1px solid #ffffff2a;border-radius:25px;padding:13px 18px;backdrop-filter:blur(14px);outline:none;transition:border-color .3s,box-shadow .3s}
 #prompt:focus{border-color:var(--accent);box-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent)}
@@ -73,7 +77,7 @@ try{const c=$("#fx");surface=new VainFluid.Surface(c);surface.start();window.add
 /* ---------- appearance: vAIn can change this, but only what you accept ---------- */
 let committed={};
 const svgUrl=svg=>"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
-function applyDesign(d){const r=document.documentElement.style;if(d.accent){r.setProperty("--accent",d.accent);surface&&surface.setAccent(d.accent)}if(d.background){r.setProperty("--bg",d.background)}if(d.panel)r.setProperty("--panel",d.panel);if(d.site_name){$("#siteName").textContent=d.site_name;document.title=d.site_name}
+function applyDesign(d){const r=document.documentElement.style;if(d.accent){r.setProperty("--accent",d.accent);surface&&surface.setAccent(d.accent)}if(d.background){r.setProperty("--bg",d.background)}if(d.panel)r.setProperty("--panel",d.panel);for(const k of["font","density","bubble"])if(d[k])document.body.dataset[k]=d[k];if(d.motion&&surface)surface.setMotion(d.motion);if(d.site_name){$("#siteName").textContent=d.site_name;document.title=d.site_name}
  const s=$("#scene");if(d.scene_svg){s.src=svgUrl(d.scene_svg);s.className="on"}else if(d.scene_svg===""){s.className=""}}
 const remember=d=>{committed={...committed,...d}};
 
@@ -111,6 +115,13 @@ const blocks={
    const out=h("div",{class:"muted"});box.append(h("div",{class:"row"},h("button",{class:"btn",onclick:async()=>{out.textContent="Testing…";try{const r=await api("/api/health?deep=1");out.textContent=r.inference&&r.inference.ok?"Live test passed via "+shortEngine(r.inference.engine):"Live test failed: "+(r.inference&&r.inference.error)}catch(e){out.textContent=e.message}}},"Run a live test"),out))}catch(e){box.lastChild.textContent=e.message}},
  async sessions(){const box=blk("Earlier conversations",loading());try{const d=await api("/api/sessions");box.lastChild.remove();const list=(d.sessions||[]).filter(s=>s.session_id!==SESSION);if(!list.length)box.append(h("div",{class:"muted"},"No earlier conversations."));
    for(const s of list.slice(0,10))box.append(h("div",{class:"item"},h("button",{class:"btn",onclick:async()=>{setSession(s.session_id);stream().textContent="";await loadHistory()}},(s.title||"Untitled").replace(/\s+/g," ").slice(0,60))))}catch(e){box.lastChild.textContent=e.message}},
+
+ art(b){const img=h("img",{class:"art",src:svgUrl(b.svg),alt:"drawing of "+b.subject});
+  const use=h("button",{class:"btn",type:"button",onclick:async()=>{use.disabled=true;try{const r=await post("/api/site/proposals",{request:"use my drawing of "+b.subject+" as the background",scene_svg:b.svg});showProposal(blk("Preview"),r,true)}catch(e){use.disabled=false;alert(e.message)}}},"Use as background");
+  blk(b.whim?"I drew this for you":"Drawing: "+b.subject,img,h("div",{class:"row"},use,h("span",{class:"muted"},"Only in this chat until you choose.")))},
+ suggest(b){blk("",h("div",{class:"row"},...(b.chips||[]).slice(0,3).map(c=>h("button",{class:"btn",type:"button",onclick:()=>send(c.send)},c.label))))},
+ identity(){const out=h("div",{class:"muted"});const file=h("input",{type:"file",accept:"application/json,.json"});file.onchange=async()=>{try{const f=file.files&&file.files[0];if(!f)return;const r=await post("/api/vain/identity",JSON.parse(await f.text()));out.className="ok";out.textContent="Restored: "+r.memories+" memories, "+r.examples+" training examples, and the look."}catch(e){out.className="err";out.textContent=e.message}};
+  blk("Portable identity",h("div",{class:"muted"},"One checksummed file with my memories, my look and my approved training examples. A tampered file is refused."),h("div",{class:"row"},h("a",{class:"btn",href:"/api/vain/identity",download:"vain-identity.json"},"Download backup")),h("div",{class:"muted",style:"margin-top:8px"},"Restore from a backup (adds what's missing, never deletes):"),file,out)},
  question(b){showQuestion(b.question)},
 };
 function showQuestion(q){if(!q)return;const ta=h("textarea",{rows:"2",placeholder:"Your answer (saved to memory as something you told me)"});const msg=h("span",{class:"muted"});let box;
@@ -122,20 +133,21 @@ function showQuestion(q){if(!q)return;const ta=h("textarea",{rows:"2",placeholde
 function showProposal(box,p,first){box.textContent="";box.append(h("h3",{},"Preview"));const d=p.design||{};
  if(first)applyDesign(d); // temporary: reverted if you deny
  const pv=h("div",{class:"pv",style:"background:"+(d.background||"#080a10")});if(d.scene_svg)pv.append(h("img",{src:svgUrl(d.scene_svg),alt:"proposed background"}));pv.append(h("div",{class:"cap",style:"color:"+(d.accent||"#fff")},(d.site_name||"")+" · "+(d.tagline||"")));
- box.append(h("div",{class:"muted"},"“"+p.request+"”"),pv,h("div",{class:"row"},...["accent","background","panel"].map(k=>h("span",{class:"muted"},h("span",{class:"sw",style:"background:"+(d[k]||"#000")})," "+(d[k]||"")))));
+ box.append(h("div",{class:"muted"},"“"+p.request+"”"),pv,h("div",{class:"row"},...["accent","background","panel"].map(k=>h("span",{class:"muted"},h("span",{class:"sw",style:"background:"+(d[k]||"#000")})," "+(d[k]||""))),h("span",{class:"muted"},[d.font,d.density,d.motion,d.bubble].filter(Boolean).join(" · "))));
  const status=h("div",{class:"muted"},"Showing this live now. Nothing is saved until you accept.");const edit=h("div");
  const accept=h("button",{class:"btn good",type:"button",onclick:async()=>{try{await post("/api/site/approve",{id:p.id});remember(d);row.remove();edit.remove();status.className="ok";status.textContent="Accepted. This is how I look now."}catch(e){status.className="err";status.textContent=e.message}}},"Accept");
- const deny=h("button",{class:"btn bad",type:"button",onclick:async()=>{try{await post("/api/site/reject",{id:p.id});applyDesign({scene_svg:committed.scene_svg||"",accent:committed.accent||"#a18aff",background:committed.background||"#080a10",panel:committed.panel||"#111725",site_name:committed.site_name||"vAIn"});row.remove();edit.remove();status.textContent="Discarded. Back to how I was."}catch(e){status.className="err";status.textContent=e.message}}},"Deny");
+ const deny=h("button",{class:"btn bad",type:"button",onclick:async()=>{try{await post("/api/site/reject",{id:p.id});applyDesign({scene_svg:committed.scene_svg||"",accent:committed.accent||"#a18aff",background:committed.background||"#080a10",panel:committed.panel||"#111725",site_name:committed.site_name||"vAIn",font:committed.font||"system",density:committed.density||"cozy",motion:committed.motion||"alive",bubble:committed.bubble||"glass"});row.remove();edit.remove();status.textContent="Discarded. Back to how I was."}catch(e){status.className="err";status.textContent=e.message}}},"Deny");
  const amend=h("button",{class:"btn",type:"button",onclick:()=>{edit.textContent="";const t=h("input",{placeholder:"What should change? e.g. more purple, add a rainbow"});const go=h("button",{class:"btn primary",type:"button",onclick:async()=>{go.disabled=true;status.textContent="Revising…";try{const r=await post("/api/site/proposals",{request:t.value,base_id:p.id});showProposal(box,{...r,id:r.id,request:r.request,design:r.design},true)}catch(e){status.className="err";status.textContent=e.message;go.disabled=false}}},"Revise");t.onkeydown=ev=>{if(ev.key==="Enter"){ev.preventDefault();go.click()}};edit.append(t,h("div",{class:"row"},go));t.focus&&t.focus()}},"Amend");
  const row=h("div",{class:"row"},accept,deny,amend);box.append(row,edit,status)}
 
 /* ---------- modes: the page itself changes ---------- */
 function setMode(m){mode=m;document.body.classList.toggle("lab",m==="lab");surface&&surface.setMode(m==="lab"?"lab":"idle");updateHud()}
-function updateHud(){const hud=$("#hud");if(mode!=="lab"||!surface){hud.textContent="";return}const s=surface.world.stats();hud.textContent="lab · "+s.nodes+" concepts · "+s.links+" links · "+s.strong+" strongly tied — your words, visualised (not a physics simulation)"}
+function updateHud(){const hud=$("#hud");if(mode!=="lab"||!surface){hud.textContent="";return}const s=surface.world.stats();const r=surface.reg;hud.textContent="lab · "+s.nodes+" concepts · "+s.links+" links"+(r.log.length?" · "+r.n+"-qubit register (exact simulation)":"")+" — your words, visualised; the register is a real classical simulation, not a quantum computer"}
 function feed(text,who){if(mode==="lab"&&surface){surface.world.addText(text,who);surface.pulse();updateHud()}}
 
 /* ---------- chat ---------- */
-async function send(text){if(busy||!text.trim())return;busy=true;$("#send").disabled=true;bubble("user",text);feed(text,"you");surface&&mode!=="lab"&&surface.setMode("thinking");const wait=bubble("assistant","…");
+function labCommand(text){if(mode!=="lab"||!surface)return false;let ops=null;try{ops=VainFluid.parseQuantum(text)}catch(e){}if(!ops)return false;bubble("user",text);let out;try{out=VainFluid.runQuantum(surface.reg,ops)}catch(e){out=e.message}bubble("assistant",out,"lab · bits read qubit 0 first");surface.pulse();updateHud();return true}
+async function send(text){if(busy||!text.trim())return;if(labCommand(text))return;busy=true;$("#send").disabled=true;bubble("user",text);feed(text,"you");surface&&mode!=="lab"&&surface.setMode("thinking");const wait=bubble("assistant","…");
  try{const d=await api("/api/chat",{method:"POST",body:JSON.stringify({message:text,session_id:SESSION})});wait.remove();
   const eng=shortEngine(d.engine);bubble("assistant",d.response||"",eng?("via "+eng+(d.fell_back?" (fallback)":"")):"");feed(d.response||"","vain");
   if(d.engine&&!["workspace","memory"].includes(d.engine))setDot(true);

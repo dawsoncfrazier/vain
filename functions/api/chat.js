@@ -2,6 +2,8 @@ import { runChat } from "../../src/engine.js";
 import { IDENTITY } from "../../src/identity.js";
 import { detectIntent, HELP, stripAddress } from "../../src/intent.js";
 import { learn } from "../../src/learn.js";
+import { drawArt } from "../../src/art.js";
+import { ensureSiteSchema } from "../../src/site.js";
 import { ensureQuestion, currentQuestion, skipQuestion } from "../../src/questions.js";
 import { createProposal } from "../../src/site.js";
 
@@ -34,12 +36,15 @@ export function directRecall(q, mem) {
   return null;
 }
 
+const getSetting = async (db, key) => (await db.prepare("SELECT value FROM site_settings WHERE key=?").bind(key).first())?.value;
+const setSetting = async (db, key, value) => db.prepare("INSERT INTO site_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at").bind(key, String(value), new Date().toISOString()).run();
 const BLOCK_TEXT = {
   memories: "Here's what I have saved. Say \"forget <text>\" to remove one.",
   briefing: "Here's the latest from my free public sources. They're unverified until you check them.",
   labdata: "Here are the examples waiting for your review. Nothing trains until you start a run.",
   engines: "Here's which engines I'm using right now.",
   sessions: "Here are your earlier conversations.",
+  identity: "This is my portable identity: memories, look, and approved training examples in one signed file. You can back it up or restore it here.",
 };
 
 export async function onRequestPost({ request, env }) {
@@ -81,6 +86,15 @@ export async function onRequestPost({ request, env }) {
       }
       else if (intent.kind === "question") { const q = await ensureQuestion(env, { force: true }); response = "Here is what I most want to know right now:\n\n" + q.question; blocks = [{ type: "question", question: q }]; }
       else if (intent.kind === "skip") { const q = await currentQuestion(env.DB); if (q) { await skipQuestion(env.DB, q.id); response = "Skipped. I'll ask something else later."; } else response = "I have no open question."; }
+      else if (intent.kind === "art") {
+        try { const a = await drawArt(env, intent.subject); response = "Here's my drawing of " + intent.subject + ". It's only shown here; say the word and it can become my background."; blocks = [{ type: "art", subject: a.subject, svg: a.svg }]; }
+        catch (e) { response = "I couldn't draw that right now: " + String(e?.message || e).slice(0, 160); }
+      }
+      else if (intent.kind === "initiative") {
+        await ensureSiteSchema(env.DB); await setSetting(env.DB, "initiative", intent.level);
+        response = intent.level === "free" ? "Understood. When it would help, I may add a drawing or visual to a long answer on my own. It only appears in the chat; anything that changes my look still needs your Accept. Say \"stop surprising me\" to turn this off."
+          : intent.level === "ask" ? "Okay. I'll offer visuals as suggestions and wait for you." : "Okay. No unrequested visuals or suggestions.";
+      }
       else if (intent.kind === "help_site") response = "Tell me what to change, for example: make the background a unicorn meadow.";
       else if (intent.kind === "site_change") {
         try { const p = await createProposal(env, intent.goal); response = "Here's a preview. Nothing changes until you accept it." + (p.note ? " " + p.note : ""); blocks = [{ type: "preview", proposal: p }]; }
@@ -117,6 +131,14 @@ export async function onRequestPost({ request, env }) {
     try { out = await runChat(env, [{ role: "system", content: IDENTITY + memoryText }, ...history, { role: "user", content: message }], { max_tokens: 700, temperature: 0.35 }); }
     catch (e) { return json({ error: "No engine could answer right now.", detail: String(e?.message || e).slice(0, 200), tried: (e.tried || []).map(t => ({ engine: t.engine, note: t.skipped || t.error })) }, 502); }
     await persist(out.text);
-    return json({ response: out.text, engine: out.engine, model: out.model, persisted: true, fell_back: out.tried.length > 0, blocks: savedBlock ? [savedBlock] : [] });
+    const blocks = savedBlock ? [savedBlock] : [];
+    try { // initiative: ephemeral visuals only; nothing persistent without Accept
+      if (out.text.length > 350 && !/\?\s*$/.test(out.text.slice(-3)) ) {
+        await ensureSiteSchema(env.DB); const level = (await getSetting(env.DB, "initiative")) || "ask"; const topic = message.replace(/[?!.]+$/g, "").slice(0, 80);
+        if (level === "free") { const last = Date.parse(await getSetting(env.DB, "last_whim") || 0) || 0; if (Date.now() - last > 10 * 60 * 1000) { await setSetting(env.DB, "last_whim", new Date().toISOString()); const a = await drawArt(env, topic); blocks.push({ type: "art", subject: a.subject, svg: a.svg, whim: true }); } }
+        else if (level === "ask") blocks.push({ type: "suggest", chips: [{ label: "Draw this", send: "draw " + topic }] });
+      }
+    } catch (e) { /* initiative must never break an answer */ }
+    return json({ response: out.text, engine: out.engine, model: out.model, persisted: true, fell_back: out.tried.length > 0, blocks });
   } catch (e) { return json({ error: "Chat/database operation failed.", detail: String(e?.message || e).slice(0, 250) }, 502); }
 }

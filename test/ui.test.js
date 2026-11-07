@@ -18,12 +18,14 @@ class El {
 const txt = s => Object.assign(new El("#t"), { nodeType: 3, _text: String(s) });
 const byId = {}; for (const m of html.matchAll(/id="([\w-]+)"/g)) byId[m[1]] = new El("x");
 const bodyEl = new El("body"); const sent = []; const R = j => ({ ok: true, json: async () => j });
-const DESIGN = { accent: "#ff66cc", background: "#101030", panel: "#1a1a40", site_name: "vAIn", tagline: "t", scene_svg: '<svg viewBox="0 0 10 10"><rect width="10" height="10"/></svg>' };
+const DESIGN = { font: "serif", density: "airy", motion: "calm", bubble: "solid", accent: "#ff66cc", background: "#101030", panel: "#1a1a40", site_name: "vAIn", tagline: "t", scene_svg: '<svg viewBox="0 0 10 10"><rect width="10" height="10"/></svg>' };
 const chatReply = body => {
   const m = body.message;
   if (/background/.test(m)) return { response: "Here's a preview.", engine: "workspace", blocks: [{ type: "preview", proposal: { id: 5, request: m, status: "pending", design: DESIGN } }] };
   if (/remember/.test(m)) return { response: "Noted.", engine: "workspace", blocks: [{ type: "saved", id: 9, text: "my cat is Pixel", category: "personal_fact" }] };
   if (/learn/.test(m)) return { response: "Black holes are regions of strong gravity [1].", engine: "workspace", blocks: [{ type: "learn", topic: "black holes", summary: "s", sources: [{ n: 1, title: "Black hole", url: "https://en.wikipedia.org/wiki/Black_hole" }], images: [{ src: "https://upload.wikimedia.org/a.jpg", caption: "Black hole" }, { src: "https://upload.wikimedia.org/b.jpg", caption: "Disk" }] }] };
+  if (/draw/.test(m)) return { response: "Here's my drawing.", engine: "workspace", blocks: [{ type: "art", subject: "a lighthouse", svg: DESIGN.scene_svg }, { type: "suggest", chips: [{ label: "Draw this", send: "draw a cat" }] }] };
+  if (/export/.test(m)) return { response: "Identity.", engine: "workspace", blocks: [{ type: "identity" }] };
   if (/lab/.test(m)) return { response: "Lab open.", engine: "workspace", blocks: [{ type: "mode", mode: "lab" }] };
   if (/^close/.test(m)) return { response: "Back.", engine: "workspace", blocks: [{ type: "mode", mode: "chat" }] };
   return { response: "plain <b>reply</b>", engine: "mac" };
@@ -41,6 +43,7 @@ const ctx = {
     if (u === "/api/vain/questions" && !(o && o.method)) return R({ question: { id: 3, question: "What is grand?", why: "direction" } });
     if (u === "/api/vain/questions") return R({ ok: true });
     if (u.startsWith("/api/vain/memory")) return R({ deleted: true });
+    if (u.startsWith("/api/vain/identity")) return R({ ok: true, memories: 2, examples: 1 });
     if (u.startsWith("/api/site/proposals")) return R({ id: 6, request: body.request, status: "pending", design: { ...DESIGN, accent: "#9933ff" } });
     if (u.startsWith("/api/site/")) return R({ ok: true });
     return { ok: false, status: 404, json: async () => ({ error: "nope" }) };
@@ -84,4 +87,23 @@ test("lab: the page becomes a simulation; typed words become nodes; close leaves
   await say("quantum entanglement of memories"); const st = vm.runInContext("surface.world.stats()", ctx);
   assert.ok(st.nodes >= 3 && st.links >= 3); assert.match(byId.hud.textContent, /concepts/);
   await say("close"); assert.ok(!bodyEl.classes.has("lab"));
+});
+
+test("interface control: accepted design changes font, density, bubble style and motion", async () => {
+  await say("make the background a forest"); assert.equal(bodyEl.dataset.font, "serif"); assert.equal(bodyEl.dataset.density, "airy"); assert.equal(bodyEl.dataset.bubble, "solid");
+  assert.equal(vm.runInContext("surface.motion", ctx), .35);
+});
+test("art block: drawing shown as an image, 'Use as background' makes a preview you must accept; suggestion chips send", async () => {
+  await say("draw a lighthouse"); const art = blocksOf().slice(-2)[0]; const img = art.find(e => e.tag === "img"); assert.match(img.src, /^data:image\/svg\+xml/);
+  await btn(art, "Use as background").onclick(); await ticks(6); assert.ok(sent.some(s => s[0] === "/api/site/proposals" && /drawing/.test(s[2].request) && s[2].scene_svg));
+  const chip = btn(byId.messages, "Draw this"); assert.ok(chip); const before = sent.length; await chip.onclick(); await ticks(10); assert.ok(sent.slice(before).some(s => s[0] === "/api/chat" && s[2].message === "draw a cat"));
+});
+test("identity block: download link and restore-from-file", async () => {
+  await say("export yourself"); const b = blocksOf().pop(); const link = b.find(e => e.tag === "a"); assert.equal(link.attrs.href, "/api/vain/identity");
+  const input = b.find(e => e.tag === "input"); input.files = [{ text: async () => JSON.stringify({ format: "vain-identity/1" }) }]; await input.onchange(); await ticks(6); assert.match(b.textContent, /Restored: 2 memories, 1 training examples/);
+});
+test("lab: quantum commands run locally on a real register and are shown as bubbles", async () => {
+  await say("open the lab"); const calls = sent.length; await say("bell state"); assert.ok(!sent.slice(calls).some(s => s[0] === "/api/chat"), "quantum command stays local");
+  assert.match(msgs().pop().textContent, /0\.707\|00⟩ \+ 0\.707\|11⟩/); assert.match(msgs().pop().textContent, /Entanglement entropy/); assert.match(byId.hud.textContent, /2-qubit register/);
+  await say("hadamard on 9"); assert.match(msgs().pop().textContent, /doesn't exist/); await say("close");
 });

@@ -13,6 +13,8 @@ import { detectIntent } from "../src/intent.js";
 import { extractText, runChat } from "../src/engine.js";
 import { sanitizeSvg } from "../src/scene.js";
 import { learn } from "../src/learn.js";
+import * as ident from "../functions/api/vain/identity.js";
+import { validateDesign } from "../src/site.js";
 
 const ok = (text) => async () => ({ response: text });
 const say = async (env, message) => { const r = await chat.onRequestPost({ request: req("/api/chat", "POST", { message, session_id: SID }), env }); return { status: r.status, ...(await r.json()) }; };
@@ -162,4 +164,35 @@ test("go learn: reads open sources, cites, returns images; no model invention on
     const r2 = await say(mk(), "go learn about cats"); assert.match(r2.response, /couldn't read/); assert.equal((r2.blocks || []).length, 0);
     const v = await say(mk(), "go learn about this"); assert.match(v.response, /Learn about what/);
   } finally { globalThis.fetch = real; }
+});
+
+const SVG = '<svg viewBox="0 0 600 400"><rect width="600" height="400" fill="#123"/><circle cx="300" cy="200" r="60" fill="#fc6"/></svg>';
+const DESIGN_JSON = '{"site_name":"vAIn","tagline":"t","accent":"#33ccaa","background":"#081018","panel":"#101c28","description":"d","font":"serif","density":"airy","motion":"calm","bubble":"solid"}';
+test("interface control: font, density, motion, bubble are validated enums", async () => {
+  const d = validateDesign({ font: "comic-sans; background:url(x)", density: "airy", motion: "calm", bubble: "neon" }); assert.equal(d.font, "system"); assert.equal(d.density, "airy"); assert.equal(d.motion, "calm"); assert.equal(d.bubble, "glass");
+  const env = mk(fakeAI(ok(DESIGN_JSON))); const r = await say(env, "change the font to serif and make it calmer"); const p = r.blocks[0].proposal.design; assert.deepEqual([p.font, p.density, p.motion, p.bubble], ["serif", "airy", "calm", "solid"]);
+  await post(approve, env, "/a", { id: r.blocks[0].proposal.id }); assert.equal(env.DB.raw.prepare("SELECT value FROM site_settings WHERE key='font'").get().value, "serif");
+});
+test("draw on request: sanitized art block, never persistent; unsafe art refused", async () => {
+  const env = mk(fakeAI(ok("sure " + SVG))); const r = await say(env, "hey vain, draw a lighthouse in a storm"); assert.equal(r.blocks[0].type, "art"); assert.ok(r.blocks[0].svg.startsWith("<svg")); assert.equal(env.DB.raw.prepare("SELECT COUNT(*) n FROM site_settings").get().n, 0);
+  const bad = await say(mk(fakeAI(ok("<svg><script>x</script></svg>"))), "draw a cat"); assert.match(bad.response, /couldn't draw/); assert.equal((bad.blocks || []).length, 0);
+  const envD = mk(fakeAI(ok(DESIGN_JSON))); const p = await post(props, envD, "/api/site/proposals", { request: "use my drawing as the background", scene_svg: SVG }); assert.ok(p.design.scene_svg.startsWith("<svg"));
+  const evil = await post(props, envD, "/api/site/proposals", { request: "use my drawing as the background", scene_svg: "<svg><script>x</script></svg>" }); assert.ok(!/script/.test(evil.design?.scene_svg || ""));
+});
+test("initiative: ask offers chips, free draws on its own (throttled), off stays quiet; permission is explicit", async () => {
+  const long = "A long answer. ".repeat(40); const ai = fakeAI(async (m, input) => ({ response: /Draw ONE clear illustration/.test(input.messages[0].content) ? SVG : long })); const env = mk(ai);
+  let r = await say(env, "explain entanglement"); assert.equal(r.blocks.at(-1).type, "suggest"); assert.equal(r.blocks.at(-1).chips[0].send, "draw explain entanglement");
+  r = await say(env, "you can surprise me"); assert.match(r.response, /Accept/);
+  r = await say(env, "explain interference"); assert.equal(r.blocks.at(-1).type, "art"); assert.equal(r.blocks.at(-1).whim, true);
+  r = await say(env, "explain superposition"); assert.ok(!r.blocks.some(b => b.type === "art")); // 10-minute throttle
+  await say(env, "stop surprising me"); env.DB.raw.prepare("DELETE FROM site_settings WHERE key='last_whim'").run(); r = await say(env, "explain decoherence"); assert.equal(r.blocks.length, 0);
+});
+test("portable identity: export, tamper detection, import into a fresh vessel", async () => {
+  const a = mk(); await post(mem, a, "/m", { text: "I love lighthouses", category: "preference" }); await post(lab, a, "/l", { action: "add", user_text: "Who are you?", assistant_text: "I am vAIn." });
+  const bundle = await (await ident.onRequestGet({ env: a })).json(); assert.equal(bundle.format, "vain-identity/1"); assert.equal(bundle.checksum.length, 64); assert.equal(bundle.memories.length, 1);
+  const tampered = JSON.parse(JSON.stringify(bundle)); tampered.memories[0].text = "I hate lighthouses"; const bad = await post(ident, mk(), "/i", tampered); assert.equal(bad.status, 400); assert.match(bad.error, /checksum/);
+  assert.equal((await post(ident, mk(), "/i", { format: "other" })).status, 400);
+  const b = mk(); const ok1 = await post(ident, b, "/i", bundle); assert.equal(ok1.memories, 1); assert.equal(ok1.examples, 1);
+  assert.equal(b.DB.raw.prepare("SELECT source FROM memory_entries").get().source, "import"); const again = await post(ident, b, "/i", bundle); assert.equal(again.memories, 0); assert.equal(again.examples, 0);
+  assert.equal((await say(b, "export yourself")).blocks[0].type, "identity");
 });

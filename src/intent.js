@@ -1,7 +1,7 @@
 // Deterministic intent detection: decides which workspace panel the conversation should open.
 // Kept rule-based on purpose: the hosted model is never trusted to decide what changes the interface.
 const CHANGE_VERBS = "(?:change|make|add|rename|remove|delete|fix|update|redesign|restyle|move|hide|show|swap|replace|tweak|improve|tidy|resize|recolou?r|darken|lighten|brighten)";
-const SITE_NOUNS = "(?:page|site|website|webpage|sidebar|button|colou?rs?|background|backdrop|wallpaper|theme|layout|font|title|header|footer|menu|ui|interface|icon|logo|spacing|style|accent|banner|card|panel|tagline|scene|chat)";
+const SITE_NOUNS = "(?:page|site|website|webpage|sidebar|button|colou?rs?|background|backdrop|wallpaper|theme|layout|font|title|header|footer|menu|ui|interface|icon|logo|spacing|style|accent|banner|card|panel|tagline|scene|chat|bubbles?|animation|motion|particles|vibe|mood|look|density|spacing|typeface)";
 const SITE_CHANGE = new RegExp("^\\s*(?:vain[,:]?\\s+)?(?:please\\s+)?(?:(?:can|could|would)\\s+you\\s+|i\\s+want\\s+you\\s+to\\s+|i(?:'d|\\s+would)\\s+like\\s+you\\s+to\\s+|let'?s\\s+)?" + CHANGE_VERBS + "\\b", "i");
 const SITE_NOUN = new RegExp("\\b" + SITE_NOUNS + "\\b", "i");
 
@@ -10,7 +10,10 @@ export const HELP = [
   "- \"make the background unicorns\" shows a preview bubble with Accept, Deny and Amend.",
   "- \"remember this: ...\" saves it, with an Undo.",
   "- \"go learn about black holes\" reads open sources and comes back with a summary, citations and pictures.",
-  "- \"open the lab\" turns the whole page into a simulation; everything you type becomes part of it. \"close\" leaves it.",
+  "- \"draw a lighthouse in a storm\" sketches it right here. \"you can surprise me\" lets me add visuals on my own; \"stop surprising me\" turns that off.",
+  "- \"change the font to serif\", \"make it calmer\", \"use solid bubbles\" all arrive as previews you accept.",
+  "- \"export yourself\" gives you a portable backup of my identity, memories and look.",
+  "- \"open the lab\" turns the whole page into a simulation; everything you type becomes part of it, and quantum commands (\"bell state\", \"hadamard on 0\", \"cnot 0 1\", \"measure\") run a real small simulator. \"close\" leaves it.",
   "- Also: \"show my memory\", \"what's new in research\", \"which engine are you using\", \"show training data\", \"my past chats\", \"ask me something\".",
   "Nothing permanent about my appearance changes until you accept it. Rollback and the kill switch stay outside the chat.",
 ].join("\n");
@@ -32,6 +35,12 @@ export function detectIntent(raw) {
   if (/^(?:show|open|review|prepare|build)\s+(?:me\s+)?(?:the\s+|my\s+)?(?:training\s+(?:data|examples|files)|dataset|fine-?tun\w*(?:\s+data)?)\b/.test(low) || low === "/data") return { kind: "block", block: "labdata" };
   if (low === "/engines" || low === "/status" || low === "status" || /\bwhich (?:model|engine)\b.*\b(?:using|running|are you)\b/.test(low) || /\bare you (?:using|running on) (?:my |the )?mac\b/.test(low) || /^(?:show|open)\s+(?:the\s+)?(?:engines?|status)\b/.test(low)) return { kind: "block", block: "engines" };
   if (/^(?:show|open|list)\s+(?:me\s+)?(?:my\s+)?(?:past|previous|old)\s+(?:chats?|conversations?)\b/.test(low) || /^my (?:past|previous) (?:chats?|conversations?)\b/.test(low) || low === "/history") return { kind: "block", block: "sessions" };
+  const art = m.match(/^(?:please\s+)?(?:(?:draw|sketch|illustrate|visuali[sz]e|doodle)\s+(?:me\s+)?|show me (?:a |an )?(?:picture|image|drawing|diagram|illustration|visual)\s+(?:of\s+)?)(.{2,300}?)[.!]?$/i);
+  if (art && !/\?\s*$/.test(m)) return /\b(?:background|backdrop|wallpaper)\b/i.test(art[1]) ? { kind: "site_change", goal: m } : { kind: "art", subject: art[1].trim() };
+  if (/^(?:you can |feel free to |go ahead and |i want you to |please )?(?:surprise me|be proactive|use your (?:own )?initiative|generate (?:things|stuff|art|visuals?|images?) (?:on your own|whenever you (?:want|like|think)|when (?:you think|it helps|it(?:'s| is) useful)))/.test(low)) return { kind: "initiative", level: "free" };
+  if (/^(?:stop|don'?t|no more)\s+(?:surprising me|being proactive|generating (?:things|stuff|art|visuals?|images?) on your own|using your (?:own )?initiative)/.test(low)) return { kind: "initiative", level: "off" };
+  if (/^(?:ask (?:me )?first|only (?:suggest|offer)|just suggest)\b/.test(low)) return { kind: "initiative", level: "ask" };
+  if (/^(?:export|back ?up|download|save|import|restore)\s+(?:yourself|your(?:self)?\s+identity|my identity|your memory|everything|a backup|identity|vain)\b/.test(low) || low === "/identity") return { kind: "block", block: "identity" };
   if (low === "/question" || /^ask me (?:something|a question|one)\b/.test(low)) return { kind: "question" };
   if (low === "/skip") return { kind: "skip" };
   if (low.startsWith("/site") || low.startsWith("/change")) { const g = m.replace(/^\/\w+\s*/, "").trim(); return g ? { kind: "site_change", goal: g } : { kind: "help_site" }; }
